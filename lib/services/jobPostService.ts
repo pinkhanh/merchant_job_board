@@ -79,3 +79,29 @@ export async function listJobPosts(merchantId: string, filters: JobPostFilters =
     orderBy: { createdAt: 'desc' },
   });
 }
+
+export async function pauseJobPost(jobPostId: string) {
+  return prisma.jobPost.update({ where: { id: jobPostId }, data: { status: 'paused' } });
+}
+
+export async function reactivateJobPost(jobPostId: string) {
+  return prisma.jobPost.update({ where: { id: jobPostId }, data: { status: 'live' } });
+}
+
+export async function softDeleteJobPost(jobPostId: string) {
+  return prisma.jobPost.update({ where: { id: jobPostId }, data: { deletedAt: new Date() } });
+}
+
+export async function countJobPostsByStatus(merchantId: string) {
+  const groups = await prisma.jobPost.groupBy({
+    by: ['status'],
+    where: { merchantId, deletedAt: null },
+    _count: { status: true },
+  });
+
+  const counts = { live: 0, paused: 0, expired: 0 };
+  for (const g of groups) {
+    if (g.status in counts) counts[g.status as keyof typeof counts] = g._count.status;
+  }
+  return counts;
+}
