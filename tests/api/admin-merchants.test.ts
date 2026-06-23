@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ZodError } from 'zod';
+import { Prisma } from '@prisma/client';
 
 vi.mock('@/lib/auth/getSession');
 vi.mock('@/lib/services/adminMerchantService');
@@ -7,6 +9,13 @@ import { GET, POST } from '@/app/api/admin/merchants/route';
 import { PATCH } from '@/app/api/admin/merchants/[id]/route';
 import { getSession } from '@/lib/auth/getSession';
 import * as adminMerchantService from '@/lib/services/adminMerchantService';
+
+function makeP2002Error() {
+  return new Prisma.PrismaClientKnownRequestError('Unique constraint failed.', {
+    code: 'P2002',
+    clientVersion: 'test',
+  });
+}
 
 describe('admin merchants API', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -32,6 +41,24 @@ describe('admin merchants API', () => {
     const req = new Request('http://localhost/api/admin/merchants', { method: 'POST', body: JSON.stringify({ brandName: 'x' }) });
     const res = await POST(req);
     expect(res.status).toBe(201);
+  });
+
+  it('POST returns 400 when createMerchant rejects with a ZodError', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminMerchantService.createMerchant).mockRejectedValue(new ZodError([]));
+
+    const req = new Request('http://localhost/api/admin/merchants', { method: 'POST', body: JSON.stringify({ brandName: 'x' }) });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+  });
+
+  it('POST returns 409 when createMerchant rejects with a P2002 duplicate-username error', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminMerchantService.createMerchant).mockRejectedValue(makeP2002Error());
+
+    const req = new Request('http://localhost/api/admin/merchants', { method: 'POST', body: JSON.stringify({ brandName: 'x' }) });
+    const res = await POST(req);
+    expect(res.status).toBe(409);
   });
 
   it('PATCH toggles merchant status', async () => {
