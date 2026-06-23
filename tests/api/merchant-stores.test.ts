@@ -27,4 +27,11 @@ describe('GET /api/merchant/stores', () => {
     const res = await GET();
     expect(res.status).toBe(401);
   });
+
+  it('returns 401 when session role is not merchant', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+
+    const res = await GET();
+    expect(res.status).toBe(401);
+  });
 });
