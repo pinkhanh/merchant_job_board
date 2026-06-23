@@ -10,20 +10,20 @@ import { prisma } from '@/lib/db/prisma';
 describe('jobPostService mutations', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('pauses a job post', async () => {
-    await pauseJobPost('jp1');
-    expect(prisma.jobPost.update).toHaveBeenCalledWith({ where: { id: 'jp1' }, data: { status: 'paused' } });
+  it('pauses a job post scoped to the calling merchant', async () => {
+    await pauseJobPost('jp1', 'm1');
+    expect(prisma.jobPost.update).toHaveBeenCalledWith({ where: { id: 'jp1', merchantId: 'm1' }, data: { status: 'paused' } });
   });
 
-  it('reactivates a job post', async () => {
-    await reactivateJobPost('jp1');
-    expect(prisma.jobPost.update).toHaveBeenCalledWith({ where: { id: 'jp1' }, data: { status: 'live' } });
+  it('reactivates a job post scoped to the calling merchant', async () => {
+    await reactivateJobPost('jp1', 'm1');
+    expect(prisma.jobPost.update).toHaveBeenCalledWith({ where: { id: 'jp1', merchantId: 'm1' }, data: { status: 'live' } });
   });
 
-  it('soft-deletes a job post', async () => {
-    await softDeleteJobPost('jp1');
+  it('soft-deletes a job post scoped to the calling merchant', async () => {
+    await softDeleteJobPost('jp1', 'm1');
     expect(prisma.jobPost.update).toHaveBeenCalledWith({
-      where: { id: 'jp1' },
+      where: { id: 'jp1', merchantId: 'm1' },
       data: { deletedAt: expect.any(Date) },
     });
   });

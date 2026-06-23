@@ -80,16 +80,16 @@ export async function listJobPosts(merchantId: string, filters: JobPostFilters =
   });
 }
 
-export async function pauseJobPost(jobPostId: string) {
-  return prisma.jobPost.update({ where: { id: jobPostId }, data: { status: 'paused' } });
+export async function pauseJobPost(jobPostId: string, merchantId: string) {
+  return prisma.jobPost.update({ where: { id: jobPostId, merchantId }, data: { status: 'paused' } });
 }
 
-export async function reactivateJobPost(jobPostId: string) {
-  return prisma.jobPost.update({ where: { id: jobPostId }, data: { status: 'live' } });
+export async function reactivateJobPost(jobPostId: string, merchantId: string) {
+  return prisma.jobPost.update({ where: { id: jobPostId, merchantId }, data: { status: 'live' } });
 }
 
-export async function softDeleteJobPost(jobPostId: string) {
-  return prisma.jobPost.update({ where: { id: jobPostId }, data: { deletedAt: new Date() } });
+export async function softDeleteJobPost(jobPostId: string, merchantId: string) {
+  return prisma.jobPost.update({ where: { id: jobPostId, merchantId }, data: { deletedAt: new Date() } });
 }
 
 export async function countJobPostsByStatus(merchantId: string) {
