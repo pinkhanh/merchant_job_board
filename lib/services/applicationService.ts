@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import { z } from 'zod';
 
 export type ApplicationFilters = {
   jobPostId?: string;
@@ -52,4 +53,24 @@ export async function exportApplicationsCsv(merchantId: string, filters: Applica
     (a) => `${a.applicantName},${a.phoneNumber},${a.jobPost.title},${a.importStatus},${a.appliedAt.toISOString()}`
   );
   return [header, ...rows].join('\n');
+}
+
+const VN_PHONE_REGEX = /^0\d{9}$/;
+
+export const applyInputSchema = z.object({
+  jobPostId: z.string().guid(),
+  applicantName: z.string().min(1),
+  phoneNumber: z.string().regex(VN_PHONE_REGEX, 'Số điện thoại không hợp lệ'),
+});
+
+export class DuplicateApplicationError extends Error {}
+
+export async function createApplication(rawInput: unknown) {
+  const input = applyInputSchema.parse(rawInput);
+  try {
+    return await prisma.application.create({ data: input });
+  } catch (err: any) {
+    if (err?.code === 'P2002') throw new DuplicateApplicationError();
+    throw err;
+  }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/getSession';
-import { listApplications } from '@/lib/services/applicationService';
+import { listApplications, createApplication, DuplicateApplicationError } from '@/lib/services/applicationService';
+import { ZodError } from 'zod';
 
 export async function GET(req: Request) {
   const session = await getSession();
@@ -14,4 +15,20 @@ export async function GET(req: Request) {
     importStatus: (searchParams.get('importStatus') as any) ?? undefined,
   });
   return NextResponse.json(applications);
+}
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  try {
+    const application = await createApplication(body);
+    return NextResponse.json(application, { status: 201 });
+  } catch (err) {
+    if (err instanceof DuplicateApplicationError) {
+      return NextResponse.json({ error: 'Bạn đã ứng tuyển vào vị trí này rồi.' }, { status: 409 });
+    }
+    if (err instanceof ZodError) {
+      return NextResponse.json({ error: err.issues }, { status: 400 });
+    }
+    throw err;
+  }
 }
