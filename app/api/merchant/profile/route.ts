@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 import { getSession } from '@/lib/auth/getSession';
 import { getMerchantProfile, updateMerchantProfile } from '@/lib/services/merchantProfileService';
 
@@ -19,6 +20,13 @@ export async function PATCH(req: Request) {
   }
 
   const data = await req.json();
-  const updated = await updateMerchantProfile(session.merchantId!, data);
-  return NextResponse.json(updated);
+  try {
+    const updated = await updateMerchantProfile(session.merchantId!, data);
+    return NextResponse.json(updated);
+  } catch (err) {
+    if (err instanceof ZodError) {
+      return NextResponse.json({ error: err.issues }, { status: 400 });
+    }
+    throw err;
+  }
 }

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ZodError } from 'zod';
 
 vi.mock('@/lib/auth/getSession');
 vi.mock('@/lib/services/merchantProfileService');
@@ -66,5 +67,21 @@ describe('merchant profile API', () => {
     });
     const res = await PATCH(req);
     expect(res.status).toBe(401);
+  });
+
+  it('PATCH returns 400 for a malformed body', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
+    vi.mocked(profileService.updateMerchantProfile).mockImplementation(() => {
+      throw new ZodError([
+        { code: 'invalid_type', expected: 'string', received: 'number', path: ['description'], message: 'Expected string, received number' },
+      ] as any);
+    });
+
+    const req = new Request('http://localhost/api/merchant/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ description: 123 }),
+    });
+    const res = await PATCH(req);
+    expect(res.status).toBe(400);
   });
 });

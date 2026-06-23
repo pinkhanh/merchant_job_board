@@ -30,4 +30,13 @@ describe('merchantProfileService', () => {
       data: { description: 'New description', hotline: '19001234' },
     });
   });
+
+  it('strips unexpected fields before reaching prisma (mass-assignment protection)', async () => {
+    await updateMerchantProfile('m1', { description: 'x', status: 'active', brandName: 'Hacked' } as any);
+
+    expect(prisma.merchant.update).toHaveBeenCalledWith({
+      where: { id: 'm1' },
+      data: { description: 'x' },
+    });
+  });
 });
