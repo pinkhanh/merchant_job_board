@@ -46,4 +46,18 @@ describe('admin jobs API', () => {
     const res = await PATCH(req, { params: Promise.resolve({ id: 'jp1' }) });
     expect(res.status).toBe(400);
   });
+
+  it('PATCH returns 400 when moderateJobPost rejects an invalid action', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminJobPostService.moderateJobPost).mockRejectedValue(
+      new adminJobPostService.InvalidActionError()
+    );
+
+    const req = new Request('http://localhost/api/admin/jobs/jp1/moderate', {
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'delete', reason: 'Vi phạm chính sách' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'jp1' }) });
+    expect(res.status).toBe(400);
+  });
 });

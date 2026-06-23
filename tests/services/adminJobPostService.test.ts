@@ -7,7 +7,12 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }));
 
-import { listAllJobPosts, moderateJobPost, MissingReasonError } from '@/lib/services/adminJobPostService';
+import {
+  listAllJobPosts,
+  moderateJobPost,
+  MissingReasonError,
+  InvalidActionError,
+} from '@/lib/services/adminJobPostService';
 import { prisma } from '@/lib/db/prisma';
 
 describe('adminJobPostService', () => {
@@ -37,5 +42,14 @@ describe('adminJobPostService', () => {
 
   it('rejects moderation without a reason', async () => {
     await expect(moderateJobPost('jp1', 'admin1', 'pause', '')).rejects.toBeInstanceOf(MissingReasonError);
+  });
+
+  it('rejects an invalid action before mutating the job post', async () => {
+    await expect(
+      moderateJobPost('jp1', 'admin1', 'delete' as any, 'some reason')
+    ).rejects.toBeInstanceOf(InvalidActionError);
+
+    expect(prisma.jobPost.update).not.toHaveBeenCalled();
+    expect(prisma.jobPostModerationLog.create).not.toHaveBeenCalled();
   });
 });
