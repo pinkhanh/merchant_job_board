@@ -1,0 +1,40 @@
+import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth/getSession';
+import { createJobPost, listJobPosts, PastDeadlineError } from '@/lib/services/jobPostService';
+import { ZodError } from 'zod';
+
+export async function POST(req: Request) {
+  const session = await getSession();
+  if (!session || session.role !== 'merchant') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = await req.json();
+  try {
+    const jobPost = await createJobPost(session.merchantId!, body);
+    return NextResponse.json(jobPost, { status: 201 });
+  } catch (err) {
+    if (err instanceof PastDeadlineError) {
+      return NextResponse.json({ error: 'Hạn nộp hồ sơ phải ở tương lai' }, { status: 400 });
+    }
+    if (err instanceof ZodError) {
+      return NextResponse.json({ error: err.issues }, { status: 400 });
+    }
+    throw err;
+  }
+}
+
+export async function GET(req: Request) {
+  const session = await getSession();
+  if (!session || session.role !== 'merchant') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const jobPosts = await listJobPosts(session.merchantId!, {
+    status: (searchParams.get('status') as any) ?? undefined,
+    storeId: searchParams.get('storeId') ?? undefined,
+    industry: searchParams.get('industry') ?? undefined,
+  });
+  return NextResponse.json(jobPosts);
+}
