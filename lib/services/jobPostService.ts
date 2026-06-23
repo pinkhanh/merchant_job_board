@@ -242,3 +242,13 @@ export async function listPublicJobPosts(filters: PublicJobFilters = {}) {
 
   return { jobs, total, counts: { employmentType, industry, merchant, minSalary } };
 }
+
+export async function getPublicJobPostById(id: string) {
+  const jobPost = await prisma.jobPost.findFirst({
+    where: { id, status: 'live', deletedAt: null },
+    include: { merchant: true, jobPostStores: { include: { store: true } } },
+  });
+  if (!jobPost) return null;
+
+  return { ...jobPost, isClosed: jobPost.deadline < todayStart() };
+}
