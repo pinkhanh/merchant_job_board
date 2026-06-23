@@ -105,3 +105,140 @@ export async function countJobPostsByStatus(merchantId: string) {
   }
   return counts;
 }
+
+export type PublicJobFilters = {
+  city?: string;
+  district?: string;
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  employmentTypes?: ('part_time' | 'shift' | 'seasonal')[];
+  minSalary?: number;
+  industry?: string;
+  merchantId?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export const SALARY_BRACKETS = [3_000_000, 5_000_000, 7_000_000, 10_000_000];
+
+function todayStart(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function liveVisibleWhere() {
+  return { status: 'live' as const, deletedAt: null, deadline: { gte: todayStart() } };
+}
+
+function salaryThresholdWhere(threshold?: number) {
+  if (!threshold) return {};
+  return {
+    OR: [
+      { salaryMax: { gte: threshold } },
+      { AND: [{ salaryMax: null }, { salaryMin: { gte: threshold } }] },
+    ],
+  };
+}
+
+function manualLocationWhere(filters: PublicJobFilters) {
+  if (!filters.city && !filters.district) return {};
+  return {
+    jobPostStores: {
+      some: {
+        store: {
+          ...(filters.city ? { city: filters.city } : {}),
+          ...(filters.district ? { district: filters.district } : {}),
+        },
+      },
+    },
+  };
+}
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export async function listPublicJobPosts(filters: PublicJobFilters = {}) {
+  const page = filters.page ?? 1;
+  const pageSize = filters.pageSize ?? 20;
+
+  const baseWhere = { ...liveVisibleWhere(), ...manualLocationWhere(filters) };
+  const employmentTypeFilter = filters.employmentTypes?.length
+    ? { employmentType: { in: filters.employmentTypes } }
+    : {};
+  const salaryFilter = salaryThresholdWhere(filters.minSalary);
+  const industryFilter = filters.industry ? { industry: filters.industry } : {};
+  const merchantFilter = filters.merchantId ? { merchantId: filters.merchantId } : {};
+
+  const fullWhere = { ...baseWhere, ...employmentTypeFilter, ...salaryFilter, ...industryFilter, ...merchantFilter };
+
+  let candidates = await prisma.jobPost.findMany({
+    where: fullWhere,
+    include: { merchant: true, jobPostStores: { include: { store: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (filters.lat != null && filters.lng != null && filters.radiusKm != null) {
+    candidates = candidates.filter((jp) => {
+      const store = jp.jobPostStores[0]?.store;
+      if (!store?.lat || !store?.lng) return false;
+      return haversineKm(filters.lat!, filters.lng!, Number(store.lat), Number(store.lng)) <= filters.radiusKm!;
+    });
+  }
+
+  const total = candidates.length;
+  const jobs = candidates.slice((page - 1) * pageSize, page * pageSize);
+
+  const employmentTypeGroups = await prisma.jobPost.groupBy({
+    by: ['employmentType'],
+    where: { ...baseWhere, ...salaryFilter, ...industryFilter, ...merchantFilter },
+    _count: true,
+  });
+  const employmentType: Record<string, number> = {};
+  for (const g of employmentTypeGroups as any[]) employmentType[g.employmentType] = g._count;
+
+  const industryGroups = await prisma.jobPost.groupBy({
+    by: ['industry'],
+    where: { ...baseWhere, ...employmentTypeFilter, ...salaryFilter, ...merchantFilter },
+    _count: true,
+  });
+  const industry: Record<string, number> = {};
+  for (const g of industryGroups as any[]) industry[g.industry] = g._count;
+
+  const merchantGroups = (await prisma.jobPost.groupBy({
+    by: ['merchantId'],
+    where: { ...baseWhere, ...employmentTypeFilter, ...salaryFilter, ...industryFilter },
+    _count: true,
+  })) as any[];
+  const merchantIds = merchantGroups.map((g) => g.merchantId);
+  const merchants = merchantIds.length ? await prisma.merchant.findMany({ where: { id: { in: merchantIds } } }) : [];
+  const merchant = merchantGroups.map((g) => {
+    const m = merchants.find((mm) => mm.id === g.merchantId);
+    return { id: g.merchantId, brandName: m?.brandName ?? '', logoUrl: m?.logoUrl ?? null, count: g._count };
+  });
+
+  const minSalary = await Promise.all(
+    SALARY_BRACKETS.map(async (threshold) => ({
+      threshold,
+      count: await prisma.jobPost.count({
+        where: {
+          ...baseWhere,
+          ...employmentTypeFilter,
+          ...industryFilter,
+          ...merchantFilter,
+          ...salaryThresholdWhere(threshold),
+        },
+      }),
+    }))
+  );
+
+  return { jobs, total, counts: { employmentType, industry, merchant, minSalary } };
+}
