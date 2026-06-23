@@ -41,6 +41,7 @@ export async function createMerchant(rawInput: unknown) {
         merchantId: merchant.id,
         isActive: true,
       },
+      select: { id: true, username: true, role: true, merchantId: true, isActive: true, createdAt: true },
     });
     return { merchant, user };
   });

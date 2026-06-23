@@ -4,7 +4,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     $transaction: vi.fn((fn: any) => fn({
       merchant: { create: vi.fn().mockResolvedValue({ id: 'm1', brandName: 'Jollibee' }) },
-      user: { create: vi.fn().mockResolvedValue({ id: 'u1', username: 'jollibee_admin' }) },
+      user: { create: vi.fn().mockResolvedValue({ id: 'u1', username: 'jollibee_admin', role: 'merchant', merchantId: 'm1', isActive: true, createdAt: new Date() }) },
     })),
     merchant: { findMany: vi.fn(), update: vi.fn() },
   },
@@ -40,6 +40,17 @@ describe('adminMerchantService', () => {
     expect(prisma.$transaction).toHaveBeenCalled();
     expect(result.merchant.brandName).toBe('Jollibee');
     expect(result.user.username).toBe('jollibee_admin');
+  });
+
+  it('does not return passwordHash in user object', async () => {
+    const result = await createMerchant({
+      brandName: 'Jollibee',
+      industry: 'F&B',
+      username: 'jollibee_admin',
+      password: 'TempPass123!',
+    });
+
+    expect(result.user).not.toHaveProperty('passwordHash');
   });
 
   it('activates and deactivates a merchant', async () => {
