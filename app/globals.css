@@ -12,6 +12,34 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@theme {
+  --color-primary: #B0006D;
+  --color-primary-hover: #8F0057;
+  --color-primary-light: #FFE4F3;
+  --color-primary-surface: #FFF0F8;
+  --color-border: #E8D0DF;
+  --color-text-secondary: #6B6B6B;
+  --color-status-active-bg: #E6F9F2;
+  --color-status-active-text: #00A36C;
+  --color-status-off-bg: #FFEEEE;
+  --color-status-off-text: #D0021B;
+  --color-status-pending-bg: #FFF4E5;
+  --color-status-pending-text: #F5A623;
+  --color-status-info-bg: #EEF2FF;
+  --color-status-info-text: #4F46E5;
+
+  --font-sf-rounded: "SF Pro Rounded", -apple-system, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 20px;
+
+  --shadow-card: 0 2px 8px rgba(176, 0, 109, 0.08);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
