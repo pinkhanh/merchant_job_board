@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MerchantStatus {
+  active
+  inactive
+
+  @@map("merchant_status")
+}
+
+enum UserRole {
+  merchant
+  admin
+
+  @@map("user_role")
+}
+
+enum EmploymentType {
+  part_time
+  shift
+  seasonal
+
+  @@map("employment_type")
+}
+
+enum SalaryType {
+  hourly
+  shift
+  monthly
+  negotiable
+
+  @@map("salary_type")
+}
+
+enum JobPostStatus {
+  draft
+  live
+  paused
+  expired
+
+  @@map("job_post_status")
+}
+
+enum ImportStatus {
+  new
+  imported
+
+  @@map("import_status")
+}
+
+enum ModerationAction {
+  pause
+  unpublish
+
+  @@map("moderation_action")
+}
+
+model Merchant {
+  id            String         @id @default(uuid())
+  brandName     String         @map("brand_name")
+  logoUrl       String?        @map("logo_url")
+  industry      String
+  bannerUrl     String?        @map("banner_url")
+  hotline       String?
+  description   String?        @db.VarChar(500)
+  jobCategories Json           @default("[]") @map("job_categories")
+  status        MerchantStatus @default(active)
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  stores        Store[]
+  users         User[]
+  historicalJds HistoricalJd[]
+  jobPosts      JobPost[]
+
+  @@map("merchants")
+}
+
+model Store {
+  id            String   @id @default(uuid())
+  merchantId    String   @map("merchant_id")
+  merchant      Merchant @relation(fields: [merchantId], references: [id])
+  name          String
+  streetAddress String   @map("street_address")
+  ward          String
+  district      String
+  city          String
+  lat           Decimal? @db.Decimal(9, 6)
+  lng           Decimal? @db.Decimal(9, 6)
+  openingHours  Json     @map("opening_hours")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  jobPostStores JobPostStore[]
+
+  @@map("stores")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  username     String    @unique
+  passwordHash String    @map("password_hash")
+  role         UserRole
+  merchantId   String?   @map("merchant_id")
+  merchant     Merchant? @relation(fields: [merchantId], references: [id])
+  ssoProvider  String?   @map("sso_provider")
+  ssoId        String?   @map("sso_id")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  moderationLogs  JobPostModerationLog[]
+  phoneRevealLogs PhoneRevealLog[]
+
+  @@map("users")
+}
+
+model HistoricalJd {
+  id         String   @id @default(uuid())
+  merchantId String   @map("merchant_id")
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+  fileUrl    String   @map("file_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("historical_jds")
+}
+
+model JobPost {
+  id                 String         @id @default(uuid())
+  merchantId         String         @map("merchant_id")
+  merchant           Merchant       @relation(fields: [merchantId], references: [id])
+  title              String
+  industry           String
+  jobCategory        String?        @map("job_category")
+  employmentType     EmploymentType @map("employment_type")
+  salaryMin          Int?           @map("salary_min")
+  salaryMax          Int?           @map("salary_max")
+  salaryType         SalaryType     @map("salary_type")
+  schedule           Json
+  deadline           DateTime       @db.Date
+  experienceRequired String?        @map("experience_required")
+  requiredSkills     String[]       @map("required_skills")
+  requirements       String?
+  benefits           String[]
+  description        String?
+  status             JobPostStatus  @default(draft)
+  createdAt          DateTime       @default(now()) @map("created_at")
+  publishedAt        DateTime?      @map("published_at")
+  deletedAt          DateTime?      @map("deleted_at")
+
+  jobPostStores  JobPostStore[]
+  applications   Application[]
+  moderationLogs JobPostModerationLog[]
+
+  @@map("job_posts")
+}
+
+model JobPostStore {
+  jobPostId String  @map("job_post_id")
+  jobPost   JobPost @relation(fields: [jobPostId], references: [id])
+  storeId   String  @map("store_id")
+  store     Store   @relation(fields: [storeId], references: [id])
+
+  @@id([jobPostId, storeId])
+  @@map("job_post_stores")
+}
+
+model Application {
+  id            String       @id @default(uuid())
+  jobPostId     String       @map("job_post_id")
+  jobPost       JobPost      @relation(fields: [jobPostId], references: [id])
+  applicantName String       @map("applicant_name")
+  phoneNumber   String       @map("phone_number")
+  importStatus  ImportStatus @default(new) @map("import_status")
+  appliedAt     DateTime     @default(now()) @map("applied_at")
+
+  phoneRevealLogs PhoneRevealLog[]
+
+  @@unique([jobPostId, phoneNumber])
+  @@map("applications")
+}
+
+model JobPostModerationLog {
+  id          String           @id @default(uuid())
+  jobPostId   String           @map("job_post_id")
+  jobPost     JobPost          @relation(fields: [jobPostId], references: [id])
+  adminUserId String           @map("admin_user_id")
+  adminUser   User             @relation(fields: [adminUserId], references: [id])
+  action      ModerationAction
+  reason      String
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  @@map("job_post_moderation_logs")
+}
+
+model PhoneRevealLog {
+  id             String      @id @default(uuid())
+  applicationId  String      @map("application_id")
+  application    Application @relation(fields: [applicationId], references: [id])
+  revealedBy     String      @map("revealed_by")
+  revealedByUser User        @relation(fields: [revealedBy], references: [id])
+  revealedAt     DateTime    @default(now()) @map("revealed_at")
+
+  @@map("phone_reveal_logs")
+}
