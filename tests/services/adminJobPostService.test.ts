@@ -52,4 +52,13 @@ describe('adminJobPostService', () => {
     expect(prisma.jobPost.update).not.toHaveBeenCalled();
     expect(prisma.jobPostModerationLog.create).not.toHaveBeenCalled();
   });
+
+  it('rejects the legacy unpublish action since pause is now the only valid action', async () => {
+    await expect(
+      moderateJobPost('jp1', 'admin1', 'unpublish' as any, 'some reason')
+    ).rejects.toBeInstanceOf(InvalidActionError);
+
+    expect(prisma.jobPost.update).not.toHaveBeenCalled();
+    expect(prisma.jobPostModerationLog.create).not.toHaveBeenCalled();
+  });
 });

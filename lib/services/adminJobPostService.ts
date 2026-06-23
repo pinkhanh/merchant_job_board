@@ -25,10 +25,10 @@ export class InvalidActionError extends Error {}
 export async function moderateJobPost(
   jobPostId: string,
   adminUserId: string,
-  action: 'pause' | 'unpublish',
+  action: 'pause',
   reason: string
 ) {
-  if (action !== 'pause' && action !== 'unpublish') throw new InvalidActionError();
+  if (action !== 'pause') throw new InvalidActionError();
   if (!reason.trim()) throw new MissingReasonError();
 
   await prisma.jobPost.update({ where: { id: jobPostId }, data: { status: 'paused' } });
