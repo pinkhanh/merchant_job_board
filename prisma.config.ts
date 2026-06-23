@@ -7,6 +7,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "tsx prisma/seed.ts",
   },
   // CLI operations (migrate, db push, etc.) need a direct (non-pooled)
   // connection because PgBouncer's transaction pooling mode doesn't
