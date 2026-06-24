@@ -1,0 +1,103 @@
+# CODEOWNERS — xem CONTRIBUTING.md để hiểu vì sao chia theo domain (Job Post /
+# Application / Merchant identity-Store / Shared UI-Infra) thay vì theo site
+# (admin/merchant/worker). Điền username GitHub thật vào chỗ @member-X.
+#
+# Quy tắc GitHub: pattern khớp SAU CÙNG trong file override các pattern khớp
+# trước đó cho cùng 1 file. Catch-all để ở đầu, domain cụ thể để ở dưới.
+
+# ---- Fallback: file không thuộc 4 cụm domain dưới đây (config, package.json,
+# README, docs/, .superpowers/, prisma migration mới...) ----
+*                                              @member-D
+
+# ===================== Cụm: Shared UI / Infra =====================
+/prisma/                                       @member-D
+/lib/db/                                       @member-D
+/lib/auth/                                     @member-D
+/lib/constants/                                @member-D
+/app/globals.css                               @member-D
+/middleware.ts                                 @member-D
+/components/Shell.tsx                          @member-D
+/components/Pagination.tsx                     @member-D
+/components/WorkerHeader.tsx                   @member-D
+/app/layout.tsx                                @member-D
+/app/admin/layout.tsx                          @member-D
+/app/merchant/layout.tsx                       @member-D
+/app/jobs/layout.tsx                           @member-D
+/app/login/                                    @member-D
+/app/api/auth/                                 @member-D
+/app/page.tsx                                  @member-D
+/tests/middleware.test.ts                      @member-D
+/tests/components/Shell.test.tsx               @member-D
+/tests/components/Pagination.test.tsx          @member-D
+/tests/components/WorkerHeader.test.tsx        @member-D
+/tests/auth/                                   @member-D
+/tests/app/login-page.test.tsx                 @member-D
+/tests/constants/                              @member-D
+/tests/smoke.test.ts                           @member-D
+/tests/db-connection.test.ts                   @member-D
+/tests/setup.ts                                @member-D
+
+# ===================== Cụm: Job Post domain =====================
+/lib/services/jobPostService.ts                @member-A
+/lib/services/adminJobPostService.ts           @member-A
+/app/api/jobs/                                 @member-A
+/app/api/admin/jobs/                           @member-A
+/app/api/worker/jobs/                          @member-A
+/app/admin/jobs/                               @member-A
+/app/merchant/jobs/                            @member-A
+/app/merchant/dashboard/                       @member-A
+/app/jobs/page.tsx                             @member-A
+/app/jobs/[id]/                                @member-A
+/tests/services/jobPostService*                @member-A
+/tests/services/adminJobPostService.test.ts    @member-A
+/tests/api/jobs-create.test.ts                 @member-A
+/tests/api/jobs-update.test.ts                 @member-A
+/tests/api/admin-jobs.test.ts                  @member-A
+/tests/api/worker-jobs.test.ts                 @member-A
+/tests/api/worker-job-detail.test.ts           @member-A
+/tests/app/jobs-page.test.tsx                  @member-A
+/tests/app/jobs-new-page.test.tsx              @member-A
+/tests/app/merchant-jobs-page.test.tsx         @member-A
+/tests/app/job-detail-page.test.tsx            @member-A
+
+# ===================== Cụm: Application domain =====================
+/lib/services/applicationService.ts            @member-B
+/lib/services/adminApplicationService.ts       @member-B
+/app/api/applications/                         @member-B
+/app/api/admin/applications/                   @member-B
+/app/admin/applicants/                         @member-B
+/app/merchant/applicants/                      @member-B
+/components/ApplyModal.tsx                     @member-B
+/tests/services/applicationService*            @member-B
+/tests/services/adminApplicationService.test.ts @member-B
+/tests/api/applications*                       @member-B
+/tests/api/admin-applications.test.ts          @member-B
+/tests/app/merchant-applicants-page.test.tsx   @member-B
+/tests/components/ApplyModal.test.tsx          @member-B
+
+# ============== Cụm: Merchant identity / Store domain ==============
+/lib/services/adminMerchantService.ts          @member-C
+/lib/services/merchantProfileService.ts        @member-C
+/lib/services/storeService.ts                  @member-C
+/lib/services/aiService.ts                     @member-C
+/app/api/admin/merchants/                      @member-C
+/app/api/merchant/profile/                     @member-C
+/app/api/merchant/stores/                      @member-C
+/app/api/merchant/dashboard-counts/            @member-C
+/app/api/ai/                                   @member-C
+/app/admin/merchants/                          @member-C
+/app/merchant/profile/                         @member-C
+/lib/hooks/useStoreSearch.ts                   @member-C
+/components/StoreFilterBar.tsx                 @member-C
+/tests/services/adminMerchantService.test.ts   @member-C
+/tests/services/merchantProfileService.test.ts @member-C
+/tests/services/storeService.test.ts           @member-C
+/tests/services/aiService.test.ts              @member-C
+/tests/api/admin-merchants.test.ts             @member-C
+/tests/api/merchant-profile.test.ts            @member-C
+/tests/api/merchant-stores.test.ts             @member-C
+/tests/api/merchant-dashboard-counts.test.ts   @member-C
+/tests/api/ai-generate-description.test.ts     @member-C
+/tests/app/merchant-profile-page.test.tsx      @member-C
+/tests/hooks/useStoreSearch.test.ts            @member-C
+/tests/components/StoreFilterBar.test.tsx      @member-C
