@@ -613,7 +613,7 @@ git commit -m "feat: pass page query param through GET /api/jobs"
 - Create: `tests/app/merchant-jobs-page.test.tsx`
 
 **Interfaces:**
-- Consumes: `Pagination` component (Task 1); `GET /api/jobs?page=` returning `{ items, total }` (Task 4).
+- Consumes: `Pagination` component and `PAGE_SIZE` constant (Task 1); `GET /api/jobs?page=` returning `{ items, total }` (Task 4).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -677,6 +677,7 @@ Expected: FAIL — page renders nothing (`jobPosts.map` over `undefined`/old arr
 
 import { useEffect, useState } from 'react';
 import { Pagination } from '@/components/Pagination';
+import { PAGE_SIZE } from '@/lib/constants/pagination';
 
 type JobPost = { id: string; title: string; status: string; deadline: string };
 
@@ -751,7 +752,7 @@ export default function ManageJobPostsPage() {
           ))}
         </tbody>
       </table>
-      <Pagination page={page} pageSize={10} total={total} itemLabel="tin" onPageChange={setPage} />
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total} itemLabel="tin" onPageChange={setPage} />
     </div>
   );
 }
@@ -1023,7 +1024,7 @@ git commit -m "feat: pass page query param through GET /api/applications"
 - Create: `tests/app/merchant-applicants-page.test.tsx`
 
 **Interfaces:**
-- Consumes: `Pagination` component (Task 1); `GET /api/applications?page=` returning `{ items, total }` (Task 7).
+- Consumes: `Pagination` component and `PAGE_SIZE` constant (Task 1); `GET /api/applications?page=` returning `{ items, total }` (Task 7).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1087,6 +1088,7 @@ Expected: FAIL — no pagination footer, fetch called without `?page=`.
 
 import { useEffect, useState } from 'react';
 import { Pagination } from '@/components/Pagination';
+import { PAGE_SIZE } from '@/lib/constants/pagination';
 
 type Application = {
   id: string;
@@ -1166,7 +1168,7 @@ export default function ApplicantsPage() {
           ))}
         </tbody>
       </table>
-      <Pagination page={page} pageSize={10} total={total} itemLabel="ứng viên" onPageChange={setPage} />
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total} itemLabel="ứng viên" onPageChange={setPage} />
     </div>
   );
 }
