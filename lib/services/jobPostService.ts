@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
+import { PAGE_SIZE } from '@/lib/constants/pagination';
 
 export const createJobPostSchema = z.object({
   storeIds: z.array(z.string().guid()).min(1),
@@ -64,20 +65,31 @@ export type JobPostFilters = {
   status?: 'draft' | 'live' | 'paused' | 'expired';
   storeId?: string;
   industry?: string;
+  page?: number;
 };
 
 export async function listJobPosts(merchantId: string, filters: JobPostFilters = {}) {
-  return prisma.jobPost.findMany({
-    where: {
-      merchantId,
-      deletedAt: null,
-      ...(filters.status ? { status: filters.status } : {}),
-      ...(filters.industry ? { industry: filters.industry } : {}),
-      ...(filters.storeId ? { jobPostStores: { some: { storeId: filters.storeId } } } : {}),
-    },
-    include: { jobPostStores: { include: { store: true } }, applications: true },
-    orderBy: { createdAt: 'desc' },
-  });
+  const page = filters.page ?? 1;
+  const where = {
+    merchantId,
+    deletedAt: null,
+    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.industry ? { industry: filters.industry } : {}),
+    ...(filters.storeId ? { jobPostStores: { some: { storeId: filters.storeId } } } : {}),
+  };
+
+  const [items, total] = await Promise.all([
+    prisma.jobPost.findMany({
+      where,
+      include: { jobPostStores: { include: { store: true } }, applications: true },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.jobPost.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export async function pauseJobPost(jobPostId: string, merchantId: string) {
