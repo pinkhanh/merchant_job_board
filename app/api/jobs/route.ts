@@ -31,10 +31,11 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const jobPosts = await listJobPosts(session.merchantId!, {
+  const result = await listJobPosts(session.merchantId!, {
     status: (searchParams.get('status') as any) ?? undefined,
     storeId: searchParams.get('storeId') ?? undefined,
     industry: searchParams.get('industry') ?? undefined,
+    page: Number(searchParams.get('page') ?? '1'),
   });
-  return NextResponse.json(jobPosts);
+  return NextResponse.json(result);
 }

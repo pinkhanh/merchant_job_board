@@ -5,7 +5,7 @@ vi.mock('@/lib/services/jobPostService');
 
 import { POST, GET } from '@/app/api/jobs/route';
 import { getSession } from '@/lib/auth/getSession';
-import { createJobPost, PastDeadlineError } from '@/lib/services/jobPostService';
+import { createJobPost, listJobPosts, PastDeadlineError } from '@/lib/services/jobPostService';
 
 describe('POST /api/jobs', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -54,5 +54,37 @@ describe('GET /api/jobs', () => {
     const req = new Request('http://localhost/api/jobs', { method: 'GET' });
     const res = await GET(req);
     expect(res.status).toBe(401);
+  });
+
+  it('passes the page query param and returns the { items, total } shape', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
+    vi.mocked(listJobPosts).mockResolvedValue({ items: [{ id: 'jp1' }], total: 12 } as any);
+
+    const req = new Request('http://localhost/api/jobs?page=2');
+    const res = await GET(req);
+    const body = await res.json();
+
+    expect(listJobPosts).toHaveBeenCalledWith('m1', {
+      status: undefined,
+      storeId: undefined,
+      industry: undefined,
+      page: 2,
+    });
+    expect(body).toEqual({ items: [{ id: 'jp1' }], total: 12 });
+  });
+
+  it('defaults to page 1 when no page query param is given', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
+    vi.mocked(listJobPosts).mockResolvedValue({ items: [], total: 0 } as any);
+
+    const req = new Request('http://localhost/api/jobs');
+    await GET(req);
+
+    expect(listJobPosts).toHaveBeenCalledWith('m1', {
+      status: undefined,
+      storeId: undefined,
+      industry: undefined,
+      page: 1,
+    });
   });
 });
