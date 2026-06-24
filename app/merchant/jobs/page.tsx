@@ -1,17 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Pagination } from '@/components/Pagination';
+import { PAGE_SIZE } from '@/lib/constants/pagination';
 
 type JobPost = { id: string; title: string; status: string; deadline: string };
 
 export default function ManageJobPostsPage() {
   const [jobPosts, setJobPosts] = useState<JobPost[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    fetch('/api/jobs')
+    fetch(`/api/jobs?page=${page}`)
       .then((res) => res.json())
-      .then(setJobPosts);
-  }, []);
+      .then((body) => {
+        setJobPosts(body.items);
+        setTotal(body.total);
+      });
+  }, [page]);
 
   async function handleAction(id: string, action: 'pause' | 'reactivate' | 'delete') {
     await fetch(`/api/jobs/${id}`, {
@@ -70,6 +77,7 @@ export default function ManageJobPostsPage() {
           ))}
         </tbody>
       </table>
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total} itemLabel="tin" onPageChange={setPage} />
     </div>
   );
 }
