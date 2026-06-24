@@ -1,24 +1,35 @@
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { PAGE_SIZE } from '@/lib/constants/pagination';
 
 export type ApplicationFilters = {
   jobPostId?: string;
   importStatus?: 'new' | 'imported';
+  page?: number;
 };
 
 export class ApplicationNotFoundError extends Error {}
 
 export async function listApplications(merchantId: string, filters: ApplicationFilters = {}) {
-  return prisma.application.findMany({
-    where: {
-      jobPost: { merchantId },
-      ...(filters.jobPostId ? { jobPostId: filters.jobPostId } : {}),
-      ...(filters.importStatus ? { importStatus: filters.importStatus } : {}),
-    },
-    include: { jobPost: { select: { title: true } } },
-    orderBy: { appliedAt: 'desc' },
-  });
+  const where = {
+    jobPost: { merchantId },
+    ...(filters.jobPostId ? { jobPostId: filters.jobPostId } : {}),
+    ...(filters.importStatus ? { importStatus: filters.importStatus } : {}),
+  };
+  const paginate = filters.page != null;
+
+  const [items, total] = await Promise.all([
+    prisma.application.findMany({
+      where,
+      include: { jobPost: { select: { title: true } } },
+      orderBy: { appliedAt: 'desc' },
+      ...(paginate ? { skip: (filters.page! - 1) * PAGE_SIZE, take: PAGE_SIZE } : {}),
+    }),
+    prisma.application.count({ where }),
+  ]);
+
+  return { items, total };
 }
 
 export async function updateImportStatus(applicationId: string, merchantId: string, status: 'new' | 'imported') {
@@ -48,9 +59,9 @@ export async function revealPhone(
 }
 
 export async function exportApplicationsCsv(merchantId: string, filters: ApplicationFilters = {}): Promise<string> {
-  const applications = await listApplications(merchantId, filters);
+  const { items } = await listApplications(merchantId, filters);
   const header = 'name,phone,job_post,import_status,applied_at';
-  const rows = applications.map(
+  const rows = items.map(
     (a) => `${a.applicantName},${a.phoneNumber},${a.jobPost.title},${a.importStatus},${a.appliedAt.toISOString()}`
   );
   return [header, ...rows].join('\n');
