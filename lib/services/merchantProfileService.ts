@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
 
 export async function getMerchantProfile(merchantId: string) {
-  return prisma.merchant.findUnique({ where: { id: merchantId }, include: { stores: true } });
+  return prisma.merchant.findUnique({ where: { id: merchantId } });
 }
 
 const updateMerchantProfileSchema = z.object({

@@ -1,16 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useStoreSearch } from '@/lib/hooks/useStoreSearch';
+import { StoreFilterBar } from '@/components/StoreFilterBar';
 
 type Profile = {
   brandName: string;
   description: string | null;
   hotline: string | null;
-  stores: { id: string; name: string }[];
 };
 
 export default function MerchantProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const storeSearch = useStoreSearch();
 
   useEffect(() => {
     fetch('/api/merchant/profile')
@@ -53,14 +55,27 @@ export default function MerchantProfilePage() {
           Chỉnh sửa
         </button>
       </div>
-      <h2 className="text-lg font-bold">Danh sách cửa hàng ({profile.stores.length})</h2>
+      <h2 className="text-lg font-bold">Danh sách cửa hàng ({storeSearch.total})</h2>
+      <StoreFilterBar
+        keyword={storeSearch.keyword}
+        onKeywordChange={storeSearch.setKeyword}
+        city={storeSearch.city}
+        onCityChange={storeSearch.setCity}
+        district={storeSearch.district}
+        onDistrictChange={storeSearch.setDistrict}
+      />
       <ul className="bg-white border border-border rounded-lg shadow-card divide-y divide-border">
-        {profile.stores.map((s) => (
+        {storeSearch.items.map((s) => (
           <li key={s.id} className="px-4 py-3">
             {s.name}
           </li>
         ))}
       </ul>
+      {storeSearch.hasMore && (
+        <button onClick={storeSearch.loadMore} className="text-primary text-sm hover:underline self-start">
+          Xem thêm
+        </button>
+      )}
     </div>
   );
 }

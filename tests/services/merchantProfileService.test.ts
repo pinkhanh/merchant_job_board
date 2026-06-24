@@ -10,15 +10,12 @@ import { prisma } from '@/lib/db/prisma';
 describe('merchantProfileService', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('fetches a merchant profile including stores', async () => {
+  it('fetches a merchant profile', async () => {
     (prisma.merchant.findUnique as any).mockResolvedValue({ id: 'm1', brandName: 'Jollibee' });
 
     const profile = await getMerchantProfile('m1');
 
-    expect(prisma.merchant.findUnique).toHaveBeenCalledWith({
-      where: { id: 'm1' },
-      include: { stores: true },
-    });
+    expect(prisma.merchant.findUnique).toHaveBeenCalledWith({ where: { id: 'm1' } });
     expect(profile).toEqual({ id: 'm1', brandName: 'Jollibee' });
   });
 
