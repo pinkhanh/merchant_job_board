@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/getSession';
 import { createJobPost, listJobPosts, PastDeadlineError } from '@/lib/services/jobPostService';
+import { parsePage } from '@/lib/constants/pagination';
 import { ZodError } from 'zod';
 
 export async function POST(req: Request) {
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
     status: (searchParams.get('status') as any) ?? undefined,
     storeId: searchParams.get('storeId') ?? undefined,
     industry: searchParams.get('industry') ?? undefined,
-    page: Number(searchParams.get('page') ?? '1'),
+    page: parsePage(searchParams.get('page')),
   });
   return NextResponse.json(result);
 }

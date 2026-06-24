@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/getSession';
 import { listApplications, createApplication, DuplicateApplicationError } from '@/lib/services/applicationService';
+import { parsePage } from '@/lib/constants/pagination';
 import { ZodError } from 'zod';
 
 export async function GET(req: Request) {
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
   const result = await listApplications(session.merchantId!, {
     jobPostId: searchParams.get('jobPostId') ?? undefined,
     importStatus: (searchParams.get('importStatus') as any) ?? undefined,
-    page: Number(searchParams.get('page') ?? '1'),
+    page: parsePage(searchParams.get('page')),
   });
   return NextResponse.json(result);
 }

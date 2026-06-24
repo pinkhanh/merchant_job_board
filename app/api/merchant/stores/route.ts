@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/getSession';
 import { listStores } from '@/lib/services/storeService';
+import { parsePage } from '@/lib/constants/pagination';
 
 export async function GET(req: Request) {
   const session = await getSession();
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
     keyword: searchParams.get('keyword') ?? undefined,
     city: searchParams.get('city') ?? undefined,
     district: searchParams.get('district') ?? undefined,
-    page: Number(searchParams.get('page') ?? '1'),
+    page: parsePage(searchParams.get('page')),
   });
   return NextResponse.json(result);
 }
