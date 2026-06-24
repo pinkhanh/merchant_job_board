@@ -40,6 +40,25 @@
   --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
+@theme {
+  --color-worker-primary: #A50064;
+  --color-worker-primary-hover: #8B0055;
+  --color-worker-primary-light: #FF6B9D;
+  --color-worker-accent: #FFE0F0;
+  --color-worker-bg: #F5F5F5;
+  --color-worker-text-secondary: #6B7280;
+  --color-worker-text-disabled: #C4C4C4;
+  --color-worker-border: #E8E8E8;
+  --color-worker-hot: #FF3B30;
+  --color-worker-success: #34C759;
+
+  --radius-worker-md: 12px;
+  --radius-worker-pill: 999px;
+
+  --shadow-worker-card: 0 2px 8px rgba(0, 0, 0, 0.07);
+  --shadow-worker-modal: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
