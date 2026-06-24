@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-type Store = { id: string; name: string };
+import { useStoreSearch } from '@/lib/hooks/useStoreSearch';
+import { StoreFilterBar } from '@/components/StoreFilterBar';
 
 type WizardState = {
   storeIds: string[];
@@ -24,7 +24,7 @@ const EMPLOYMENT_TYPES = [
 export default function JobWizardPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [stores, setStores] = useState<Store[]>([]);
+  const storeSearch = useStoreSearch();
   const [stepError, setStepError] = useState<string | null>(null);
   const [state, setState] = useState<WizardState>({
     storeIds: [],
@@ -35,12 +35,6 @@ export default function JobWizardPage() {
     deadline: '',
     description: '',
   });
-
-  useEffect(() => {
-    fetch('/api/merchant/stores')
-      .then((res) => res.json())
-      .then(setStores);
-  }, []);
 
   function toggleStore(id: string) {
     setState((s) => ({
@@ -130,8 +124,16 @@ export default function JobWizardPage() {
         {stepper}
         <div className={card}>
           <h1 className="text-lg font-bold mb-4">Chọn địa điểm làm việc</h1>
+          <StoreFilterBar
+            keyword={storeSearch.keyword}
+            onKeywordChange={storeSearch.setKeyword}
+            city={storeSearch.city}
+            onCityChange={storeSearch.setCity}
+            district={storeSearch.district}
+            onDistrictChange={storeSearch.setDistrict}
+          />
           <div className="flex flex-col gap-2 mb-4">
-            {stores.map((store) => (
+            {storeSearch.items.map((store) => (
               <label
                 key={store.id}
                 htmlFor={store.id}
@@ -147,6 +149,11 @@ export default function JobWizardPage() {
               </label>
             ))}
           </div>
+          {storeSearch.hasMore && (
+            <button onClick={storeSearch.loadMore} className="text-primary text-sm hover:underline mb-4">
+              Xem thêm
+            </button>
+          )}
           {stepError && <p className="text-status-off-text text-sm mb-4">{stepError}</p>}
           <button onClick={goToStep2} className={primaryButton}>
             Tiếp theo
