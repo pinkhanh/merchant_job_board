@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Prisma } from '@prisma/client';
 
 vi.mock('@/lib/db/prisma', () => ({ prisma: { application: { create: vi.fn() } } }));
 
@@ -27,7 +28,11 @@ describe('applicationService.createApplication', () => {
   });
 
   it('throws DuplicateApplicationError when the phone already applied to this job post', async () => {
-    (prisma.application.create as any).mockRejectedValue({ code: 'P2002' });
+    const p2002Error = new Prisma.PrismaClientKnownRequestError('Unique constraint failed.', {
+      code: 'P2002',
+      clientVersion: 'test',
+    });
+    (prisma.application.create as any).mockRejectedValue(p2002Error);
     await expect(createApplication(validInput)).rejects.toBeInstanceOf(DuplicateApplicationError);
   });
 });

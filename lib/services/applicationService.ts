@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 
 export type ApplicationFilters = {
   jobPostId?: string;
@@ -69,8 +70,10 @@ export async function createApplication(rawInput: unknown) {
   const input = applyInputSchema.parse(rawInput);
   try {
     return await prisma.application.create({ data: input });
-  } catch (err: any) {
-    if (err?.code === 'P2002') throw new DuplicateApplicationError();
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      throw new DuplicateApplicationError();
+    }
     throw err;
   }
 }
