@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 type JobPost = {
@@ -37,6 +37,14 @@ function formatSalary(min: number | null, max: number | null) {
 }
 
 export default function JobsPage() {
+  return (
+    <Suspense fallback={null}>
+      <JobsPageContent />
+    </Suspense>
+  );
+}
+
+function JobsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

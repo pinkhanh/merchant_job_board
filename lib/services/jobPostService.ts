@@ -213,7 +213,7 @@ export async function listPublicJobPosts(filters: PublicJobFilters = {}) {
   const industry: Record<string, number> = {};
   for (const g of industryGroups as any[]) industry[g.industry] = g._count;
 
-  const merchantGroups = (await prisma.jobPost.groupBy({
+  const merchantGroups = (await (prisma.jobPost.groupBy as any)({
     by: ['merchantId'],
     where: { ...baseWhere, ...employmentTypeFilter, ...salaryFilter, ...industryFilter },
     _count: true,
