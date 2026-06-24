@@ -41,15 +41,17 @@
 }
 
 @theme {
-  --color-worker-primary: #A50064;
-  --color-worker-primary-hover: #8B0055;
-  --color-worker-primary-light: #FF6B9D;
-  --color-worker-accent: #FFE0F0;
+  --color-worker-primary: #E9349A;
+  --color-worker-primary-hover: #C62C83;
+  --color-worker-primary-light: #F285C2;
+  --color-worker-accent: #F7D6EB;
   --color-worker-bg: #F5F5F5;
   --color-worker-text-secondary: #6B7280;
   --color-worker-text-disabled: #C4C4C4;
   --color-worker-border: #E8E8E8;
+  --color-worker-border-hover: #ABABAB;
   --color-worker-hot: #FF3B30;
+  --color-worker-danger: #F45963;
   --color-worker-success: #34C759;
 
   --radius-worker-md: 12px;
