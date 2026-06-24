@@ -1,7 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/merchant/dashboard' }));
+const pushMock = vi.fn();
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/merchant/dashboard',
+  useRouter: () => ({ push: pushMock }),
+}));
 
 import { Shell } from '@/components/Shell';
 
@@ -46,5 +50,46 @@ describe('Shell', () => {
     );
 
     expect(screen.getByText('content').closest('main')).toHaveClass('text-text-secondary');
+  });
+});
+
+describe('Shell account menu / logout', () => {
+  beforeEach(() => {
+    pushMock.mockClear();
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) }) as any;
+  });
+
+  it('does not show the logout option until the account icon is clicked', () => {
+    render(
+      <Shell navItems={[]}>
+        <p>content</p>
+      </Shell>
+    );
+    expect(screen.queryByText('Đăng xuất')).not.toBeInTheDocument();
+  });
+
+  it('shows "Đăng xuất" after clicking the account icon', () => {
+    render(
+      <Shell navItems={[]}>
+        <p>content</p>
+      </Shell>
+    );
+    fireEvent.click(screen.getByLabelText('Tài khoản'));
+    expect(screen.getByText('Đăng xuất')).toBeInTheDocument();
+  });
+
+  it('calls the logout endpoint and redirects to /login when "Đăng xuất" is clicked', async () => {
+    render(
+      <Shell navItems={[]}>
+        <p>content</p>
+      </Shell>
+    );
+    fireEvent.click(screen.getByLabelText('Tài khoản'));
+    fireEvent.click(screen.getByText('Đăng xuất'));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });
+      expect(pushMock).toHaveBeenCalledWith('/login');
+    });
   });
 });

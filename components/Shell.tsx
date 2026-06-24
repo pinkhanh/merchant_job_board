@@ -1,18 +1,49 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 type NavItem = { href: string; label: string };
 
 export function Shell({ navItems, children }: { navItems: NavItem[]; children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+  }
 
   return (
     <div className="font-sf-rounded">
       <header className="fixed top-0 left-0 right-0 h-14 bg-primary flex items-center px-4 z-10">
         <img src="/logo-momo.png" alt="Merchant Job Board" className="w-8 h-8 rounded" />
         <span className="text-white font-semibold ml-3">Merchant Job Board</span>
+
+        <div className="ml-auto relative">
+          <button
+            onClick={() => setAccountMenuOpen((open) => !open)}
+            aria-label="Tài khoản"
+            className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.3 0-9.8 1.6-9.8 4.9v2.5h19.6v-2.5c0-3.3-6.5-4.9-9.8-4.9z" />
+            </svg>
+          </button>
+
+          {accountMenuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-[160px] bg-white rounded-md shadow-modal py-1 text-text-secondary">
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-primary-surface"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          )}
+        </div>
       </header>
       <aside className="fixed left-0 top-14 bottom-0 w-[220px] bg-white border-r border-border">
         <nav className="pt-4">
