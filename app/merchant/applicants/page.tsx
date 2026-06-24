@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Pagination } from '@/components/Pagination';
+import { PAGE_SIZE } from '@/lib/constants/pagination';
 
 type Application = {
   id: string;
@@ -11,13 +13,18 @@ type Application = {
 
 export default function ApplicantsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [revealed, setRevealed] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetch('/api/applications')
+    fetch(`/api/applications?page=${page}`)
       .then((res) => res.json())
-      .then(setApplications);
-  }, []);
+      .then((body) => {
+        setApplications(body.items);
+        setTotal(body.total);
+      });
+  }, [page]);
 
   async function handleReveal(id: string) {
     const res = await fetch(`/api/applications/${id}/reveal-phone`, { method: 'POST' });
@@ -75,6 +82,7 @@ export default function ApplicantsPage() {
           ))}
         </tbody>
       </table>
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total} itemLabel="ứng viên" onPageChange={setPage} />
     </div>
   );
 }
