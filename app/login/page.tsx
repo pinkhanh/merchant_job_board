@@ -31,7 +31,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-primary-surface font-sf-rounded">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-xl shadow-modal p-8 w-[400px] flex flex-col gap-4"
+        className="bg-white rounded-xl shadow-modal p-8 w-[400px] flex flex-col gap-4 text-text-secondary"
       >
         <h1 className="text-lg font-bold text-center">Đăng nhập</h1>
 

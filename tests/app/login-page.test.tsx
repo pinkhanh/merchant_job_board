@@ -59,4 +59,9 @@ describe('LoginPage', () => {
       expect(pushMock).toHaveBeenCalledWith('/admin/merchants');
     });
   });
+
+  it('applies the secondary text color to the form so default text inherits it', () => {
+    render(<LoginPage />);
+    expect(screen.getByText('Đăng nhập', { selector: 'h1' }).closest('form')).toHaveClass('text-text-secondary');
+  });
 });

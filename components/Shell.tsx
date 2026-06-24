@@ -11,8 +11,8 @@ export function Shell({ navItems, children }: { navItems: NavItem[]; children: R
   return (
     <div className="font-sf-rounded">
       <header className="fixed top-0 left-0 right-0 h-14 bg-primary flex items-center px-4 z-10">
-        <div className="w-8 h-8 bg-white rounded text-primary flex items-center justify-center font-bold">M</div>
-        <span className="text-white font-semibold ml-3">MoMo Việc Làm</span>
+        <img src="/logo-momo.png" alt="Merchant Job Board" className="w-8 h-8 rounded" />
+        <span className="text-white font-semibold ml-3">Merchant Job Board</span>
       </header>
       <aside className="fixed left-0 top-14 bottom-0 w-[220px] bg-white border-r border-border">
         <nav className="pt-4">
@@ -34,7 +34,7 @@ export function Shell({ navItems, children }: { navItems: NavItem[]; children: R
           })}
         </nav>
       </aside>
-      <main className="ml-[220px] mt-14 p-8 bg-primary-surface min-h-[calc(100vh-56px)]">{children}</main>
+      <main className="ml-[220px] mt-14 p-8 bg-primary-surface min-h-[calc(100vh-56px)] text-text-secondary">{children}</main>
     </div>
   );
 }
