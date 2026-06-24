@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { listPublicJobPosts } from '@/lib/services/jobPostService';
+import { parsePage } from '@/lib/constants/pagination';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
     minSalary: searchParams.get('minSalary') ? Number(searchParams.get('minSalary')) : undefined,
     industry: searchParams.get('industry') ?? undefined,
     merchantId: searchParams.get('merchantId') ?? undefined,
-    page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
+    page: parsePage(searchParams.get('page')),
   });
 
   return NextResponse.json(result);
