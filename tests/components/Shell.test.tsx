@@ -25,4 +25,26 @@ describe('Shell', () => {
     );
     expect(screen.getByText('page content')).toBeInTheDocument();
   });
+
+  it('renders the Merchant Job Board logo and brand text in the header', () => {
+    render(
+      <Shell navItems={[]}>
+        <p>content</p>
+      </Shell>
+    );
+
+    expect(screen.getByAltText('Merchant Job Board')).toHaveAttribute('src', '/logo-momo.png');
+    expect(screen.getByText('Merchant Job Board')).toBeInTheDocument();
+    expect(screen.queryByText('MoMo Việc Làm')).not.toBeInTheDocument();
+  });
+
+  it('applies the secondary text color to the main content area', () => {
+    render(
+      <Shell navItems={[]}>
+        <p>content</p>
+      </Shell>
+    );
+
+    expect(screen.getByText('content').closest('main')).toHaveClass('text-text-secondary');
+  });
 });
