@@ -10,11 +10,12 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const applications = await listApplications(session.merchantId!, {
+  const result = await listApplications(session.merchantId!, {
     jobPostId: searchParams.get('jobPostId') ?? undefined,
     importStatus: (searchParams.get('importStatus') as any) ?? undefined,
+    page: Number(searchParams.get('page') ?? '1'),
   });
-  return NextResponse.json(applications);
+  return NextResponse.json(result);
 }
 
 export async function POST(req: Request) {

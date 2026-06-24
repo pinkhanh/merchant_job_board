@@ -12,16 +12,33 @@ import * as applicationService from '@/lib/services/applicationService';
 describe('applications API', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('GET lists applications for the logged-in merchant', async () => {
+  it('GET lists applications for the logged-in merchant, defaulting to page 1', async () => {
     vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
-    vi.mocked(applicationService.listApplications).mockResolvedValue([{ id: 'app1' }] as any);
+    vi.mocked(applicationService.listApplications).mockResolvedValue({ items: [{ id: 'app1' }], total: 1 } as any);
 
     const res = await GET(new Request('http://localhost/api/applications'));
+    const body = await res.json();
+
     expect(applicationService.listApplications).toHaveBeenCalledWith('m1', {
       jobPostId: undefined,
       importStatus: undefined,
+      page: 1,
     });
     expect(res.status).toBe(200);
+    expect(body).toEqual({ items: [{ id: 'app1' }], total: 1 });
+  });
+
+  it('GET passes a custom page query param through', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
+    vi.mocked(applicationService.listApplications).mockResolvedValue({ items: [], total: 0 } as any);
+
+    await GET(new Request('http://localhost/api/applications?page=3'));
+
+    expect(applicationService.listApplications).toHaveBeenCalledWith('m1', {
+      jobPostId: undefined,
+      importStatus: undefined,
+      page: 3,
+    });
   });
 
   it('PATCH updates import status, scoped to the calling merchant', async () => {
