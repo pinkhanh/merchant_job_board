@@ -40,8 +40,8 @@ export function WorkerHeader() {
 
   return (
     <header className="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-worker-border flex items-center px-4 z-10">
-      <div className="w-8 h-8 bg-worker-primary rounded" />
-      <span className="ml-2 font-bold text-base">Việc Làm</span>
+      <img src="/logo-momo.png" alt="MoMo" className="w-8 h-8 rounded" />
+      <span className="ml-2 font-bold text-base">MoMo</span>
 
       <div className="ml-auto relative">
         <button
