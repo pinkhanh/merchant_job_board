@@ -12,3 +12,4 @@ export { Tabs } from './Tabs';
 export { Checkbox } from './Checkbox';
 export { RadioButton } from './RadioButton';
 export { SwitchToggle } from './SwitchToggle';
+export { Choicebox } from './Choicebox';
