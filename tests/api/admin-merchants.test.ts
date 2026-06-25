@@ -6,7 +6,7 @@ vi.mock('@/lib/auth/getSession');
 vi.mock('@/lib/services/adminMerchantService');
 
 import { GET, POST } from '@/app/api/admin/merchants/route';
-import { PATCH } from '@/app/api/admin/merchants/[id]/route';
+import { GET as GET_ONE, PATCH } from '@/app/api/admin/merchants/[id]/route';
 import { getSession } from '@/lib/auth/getSession';
 import * as adminMerchantService from '@/lib/services/adminMerchantService';
 
@@ -70,5 +70,38 @@ describe('admin merchants API', () => {
 
     expect(adminMerchantService.setMerchantStatus).toHaveBeenCalledWith('m1', 'inactive');
     expect(res.status).toBe(200);
+  });
+
+  it('GET /:id returns 401 for a non-admin session', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
+    const res = await GET_ONE(new Request('http://localhost/api/admin/merchants/m1'), { params: Promise.resolve({ id: 'm1' }) });
+    expect(res.status).toBe(401);
+  });
+
+  it('GET /:id returns 404 when the merchant does not exist', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminMerchantService.getMerchantById).mockResolvedValue(null);
+
+    const res = await GET_ONE(new Request('http://localhost/api/admin/merchants/missing'), { params: Promise.resolve({ id: 'missing' }) });
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /:id returns the merchant with its stores for an admin session', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminMerchantService.getMerchantById).mockResolvedValue({
+      id: 'm1',
+      brandName: 'Jollibee',
+      stores: [{ id: 's1', name: 'Cửa hàng Quận 1' }],
+    } as any);
+
+    const res = await GET_ONE(new Request('http://localhost/api/admin/merchants/m1'), { params: Promise.resolve({ id: 'm1' }) });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({
+      id: 'm1',
+      brandName: 'Jollibee',
+      stores: [{ id: 's1', name: 'Cửa hàng Quận 1' }],
+    });
+    expect(adminMerchantService.getMerchantById).toHaveBeenCalledWith('m1');
   });
 });

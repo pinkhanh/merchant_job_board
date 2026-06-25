@@ -50,3 +50,7 @@ export async function createMerchant(rawInput: unknown) {
 export async function setMerchantStatus(merchantId: string, status: 'active' | 'inactive') {
   return prisma.merchant.update({ where: { id: merchantId }, data: { status } });
 }
+
+export async function getMerchantById(id: string) {
+  return prisma.merchant.findUnique({ where: { id }, include: { stores: true } });
+}

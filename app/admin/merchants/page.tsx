@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 type Merchant = {
   id: string;
@@ -43,7 +44,11 @@ export default function AdminMerchantsPage() {
         <tbody>
           {merchants.map((m) => (
             <tr key={m.id} className="border-b border-border hover:bg-primary-surface">
-              <td className="px-4 py-3 text-primary font-medium">{m.brandName}</td>
+              <td className="px-4 py-3 text-primary font-medium">
+                <Link href={`/admin/merchants/${m.id}`} className="hover:underline">
+                  {m.brandName}
+                </Link>
+              </td>
               <td className="px-4 py-3">{m._count.stores}</td>
               <td className="px-4 py-3">{m._count.jobPosts}</td>
               <td className="px-4 py-3">

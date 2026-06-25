@@ -6,11 +6,11 @@ vi.mock('@/lib/db/prisma', () => ({
       merchant: { create: vi.fn().mockResolvedValue({ id: 'm1', brandName: 'Jollibee' }) },
       user: { create: vi.fn().mockResolvedValue({ id: 'u1', username: 'jollibee_admin', role: 'merchant', merchantId: 'm1', isActive: true, createdAt: new Date() }) },
     })),
-    merchant: { findMany: vi.fn(), update: vi.fn() },
+    merchant: { findMany: vi.fn(), update: vi.fn(), findUnique: vi.fn() },
   },
 }));
 
-import { listMerchants, createMerchant, setMerchantStatus } from '@/lib/services/adminMerchantService';
+import { listMerchants, createMerchant, setMerchantStatus, getMerchantById } from '@/lib/services/adminMerchantService';
 import { prisma } from '@/lib/db/prisma';
 
 describe('adminMerchantService', () => {
@@ -56,5 +56,33 @@ describe('adminMerchantService', () => {
   it('activates and deactivates a merchant', async () => {
     await setMerchantStatus('m1', 'inactive');
     expect(prisma.merchant.update).toHaveBeenCalledWith({ where: { id: 'm1' }, data: { status: 'inactive' } });
+  });
+
+  it('fetches a merchant by id with its stores', async () => {
+    (prisma.merchant.findUnique as any).mockResolvedValue({
+      id: 'm1',
+      brandName: 'Jollibee',
+      stores: [{ id: 's1', name: 'Cửa hàng Quận 1' }],
+    });
+
+    const result = await getMerchantById('m1');
+
+    expect(prisma.merchant.findUnique).toHaveBeenCalledWith({
+      where: { id: 'm1' },
+      include: { stores: true },
+    });
+    expect(result).toEqual({
+      id: 'm1',
+      brandName: 'Jollibee',
+      stores: [{ id: 's1', name: 'Cửa hàng Quận 1' }],
+    });
+  });
+
+  it('returns null when the merchant does not exist', async () => {
+    (prisma.merchant.findUnique as any).mockResolvedValue(null);
+
+    const result = await getMerchantById('missing');
+
+    expect(result).toBeNull();
   });
 });
