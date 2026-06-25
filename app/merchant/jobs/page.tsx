@@ -36,6 +36,13 @@ export default function ManageJobPostsPage() {
     draft: 'bg-gray-100 text-text-secondary',
   };
 
+  const STATUS_LABEL: Record<string, string> = {
+    live: 'Đang tuyển',
+    paused: 'Tạm dừng',
+    expired: 'Hết hạn',
+    draft: 'Bản nháp',
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Quản lý tin tuyển dụng</h1>
@@ -54,7 +61,7 @@ export default function ManageJobPostsPage() {
               <td className="px-4 py-3 text-primary font-medium">{post.title}</td>
               <td className="px-4 py-3">
                 <span className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${STATUS_BADGE[post.status]}`}>
-                  {post.status}
+                  {STATUS_LABEL[post.status] ?? post.status}
                 </span>
               </td>
               <td className="px-4 py-3 text-text-secondary">{post.deadline}</td>

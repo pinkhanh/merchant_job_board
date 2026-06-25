@@ -41,4 +41,21 @@ describe('ManageJobPostsPage', () => {
       expect(global.fetch).toHaveBeenCalledWith('/api/jobs?page=2');
     });
   });
+
+  it('renders a Vietnamese status label instead of the raw status code', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [{ id: 'jp2', title: 'Nhân viên kho', status: 'paused', deadline: '2026-12-31' }],
+        total: 1,
+      }),
+    }) as any;
+
+    render(<ManageJobPostsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Tạm dừng')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('paused')).not.toBeInTheDocument();
+  });
 });
