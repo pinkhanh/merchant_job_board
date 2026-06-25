@@ -3,7 +3,7 @@ import { WorkerHeader } from '@/components/WorkerHeader';
 
 export default function JobsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="font-sans">
+    <div className="font-sf-rounded">
       <Suspense fallback={null}>
         <WorkerHeader />
       </Suspense>

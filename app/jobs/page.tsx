@@ -2,6 +2,11 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Spinner } from '@/components/worker/ui/Spinner';
+import { Chips } from '@/components/worker/ui/Chips';
+import { Select } from '@/components/worker/ui/Select';
+import { Avatar } from '@/components/worker/ui/Avatar';
+import { ShowMore } from '@/components/worker/ui/ShowMore';
 
 type JobPost = {
   id: string;
@@ -52,6 +57,7 @@ function JobsPageContent() {
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<Counts>({ employmentType: {}, industry: {}, merchant: [], minSalary: [] });
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [employmentTypes, setEmploymentTypes] = useState<string[]>(
     searchParams.get('employmentType')?.split(',').filter(Boolean) ?? []
   );
@@ -75,12 +81,14 @@ function JobsPageContent() {
   }
 
   async function load(forPage: number, append: boolean) {
+    if (!append) setLoading(true);
     const res = await fetch(`/api/worker/jobs?${queryString(forPage)}`);
     const body = await res.json();
     setJobs((prev) => (append ? [...prev, ...body.jobs] : body.jobs));
     setTotal(body.total);
     setCounts(body.counts);
     setPage(forPage);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -124,15 +132,9 @@ function JobsPageContent() {
         <div className="flex gap-6 overflow-x-auto pb-4 mb-4">
           {counts.merchant.map((m) => (
             <button key={m.id} onClick={() => setMerchantId(m.id === merchantId ? '' : m.id)} className="flex flex-col items-center gap-1 shrink-0">
-              {m.logoUrl ? (
-                <img
-                  src={m.logoUrl}
-                  alt={m.brandName}
-                  className={`w-[72px] h-[72px] rounded-full object-cover ${m.id === merchantId ? 'border-2 border-worker-primary' : ''}`}
-                />
-              ) : (
-                <div className={`w-[72px] h-[72px] rounded-full bg-worker-accent ${m.id === merchantId ? 'border-2 border-worker-primary' : ''}`} />
-              )}
+              <span className={m.id === merchantId ? 'rounded-full border-2 border-worker-primary' : ''}>
+                <Avatar variant={m.logoUrl ? 'image' : 'person'} src={m.logoUrl ?? undefined} alt={m.brandName} size={72} />
+              </span>
               <span className="text-xs text-worker-text-secondary">{m.brandName}</span>
             </button>
           ))}
@@ -140,43 +142,44 @@ function JobsPageContent() {
       )}
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {EMPLOYMENT_TYPES.map((t) => {
-          const active = employmentTypes.includes(t.value);
-          return (
-            <button
-              key={t.value}
-              onClick={() => toggleEmploymentType(t.value)}
-              className={`rounded-worker-pill px-4 py-2 text-sm border ${
-                active ? 'bg-worker-accent border-worker-primary text-worker-primary' : 'bg-white border-worker-border'
-              }`}
-            >
-              {t.label} ({counts.employmentType[t.value] ?? 0})
-            </button>
-          );
-        })}
+        {EMPLOYMENT_TYPES.map((t) => (
+          <Chips
+            key={t.value}
+            label={`${t.label} (${counts.employmentType[t.value] ?? 0})`}
+            variant={employmentTypes.includes(t.value) ? 'outline' : 'secondary'}
+            onClick={() => toggleEmploymentType(t.value)}
+          />
+        ))}
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={minSalary} onChange={(e) => setMinSalary(e.target.value)} className="border border-worker-border rounded-md px-3 py-2 text-sm">
-          <option value="">Tất cả mức lương</option>
-          {counts.minSalary.map((b) => (
-            <option key={b.threshold} value={b.threshold}>
-              ≥ {b.threshold.toLocaleString('vi-VN')} ({b.count})
-            </option>
-          ))}
-        </select>
+        <Select
+          value={minSalary}
+          onChange={setMinSalary}
+          options={[
+            { value: '', label: 'Tất cả mức lương' },
+            ...counts.minSalary.map((b) => ({
+              value: String(b.threshold),
+              label: `≥ ${b.threshold.toLocaleString('vi-VN')} (${b.count})`,
+            })),
+          ]}
+        />
 
-        <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="border border-worker-border rounded-md px-3 py-2 text-sm">
-          <option value="">Tất cả ngành nghề</option>
-          {INDUSTRIES.map((i) => (
-            <option key={i} value={i}>
-              {i} ({counts.industry[i] ?? 0})
-            </option>
-          ))}
-        </select>
+        <Select
+          value={industry}
+          onChange={setIndustry}
+          options={[
+            { value: '', label: 'Tất cả ngành nghề' },
+            ...INDUSTRIES.map((i) => ({ value: i, label: `${i} (${counts.industry[i] ?? 0})` })),
+          ]}
+        />
       </div>
 
-      {jobs.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Spinner />
+        </div>
+      ) : jobs.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-worker-text-secondary mb-4">
             Không tìm thấy việc làm phù hợp. Thử mở rộng khu vực hoặc điều chỉnh bộ lọc.
@@ -195,15 +198,7 @@ function JobsPageContent() {
                 href={`/jobs/${job.id}`}
                 className="bg-white border-l-[3px] border-worker-primary rounded-worker-md shadow-worker-card p-5 flex gap-4"
               >
-                {job.merchant.logoUrl ? (
-                  <img
-                    src={job.merchant.logoUrl}
-                    alt={job.merchant.brandName}
-                    className="w-14 h-14 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-worker-accent shrink-0" />
-                )}
+                <Avatar variant={job.merchant.logoUrl ? 'image' : 'person'} src={job.merchant.logoUrl ?? undefined} alt={job.merchant.brandName} size={56} />
                 <div className="flex-1">
                   <p className="text-sm text-worker-text-secondary">{job.merchant.brandName}</p>
                   <p className="text-lg font-bold">{job.title}</p>
@@ -222,9 +217,7 @@ function JobsPageContent() {
 
       {jobs.length < total && (
         <div className="text-center mt-6">
-          <button onClick={() => load(page + 1, true)} className="border border-worker-border rounded-worker-pill px-6 py-2.5 text-sm font-medium">
-            Tải thêm
-          </button>
+          <ShowMore onClick={() => load(page + 1, true)} label="Tải thêm" />
         </div>
       )}
     </div>
