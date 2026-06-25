@@ -11,3 +11,4 @@ export { Breadcrumb } from './Breadcrumb';
 export { Tabs } from './Tabs';
 export { Checkbox } from './Checkbox';
 export { RadioButton } from './RadioButton';
+export { SwitchToggle } from './SwitchToggle';
