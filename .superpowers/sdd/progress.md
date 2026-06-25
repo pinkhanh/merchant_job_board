@@ -13,3 +13,4 @@ Task 5: complete (commit ee5372e..1427773, review clean; Minor: Avatar.tsx's `??
 Task 6: complete (commit 6d17966..a3aba77, review clean; Minor: ShowMore's isToggle&&expanded check is redundant, purely stylistic)
 Task 7: complete (commit 62f0c30..693815e, review clean)
 Task 8: complete (commit 5c36995..4e16c19, review clean; Minor: Callout disabled style overrides variant fully, mt-4 cosmetic tweak not in brief - harmless)
+Task 9: complete (commit a9e485a..74c402b, review clean)
