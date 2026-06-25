@@ -24,6 +24,15 @@ describe('ManageJobPostsPage', () => {
     expect(global.fetch).toHaveBeenCalledWith('/api/jobs?page=1');
   });
 
+  it('links the job title to its detail page', async () => {
+    render(<ManageJobPostsPage />);
+    await waitFor(() => screen.getByText('Nhân viên pha chế'));
+    expect(screen.getByRole('link', { name: 'Nhân viên pha chế' })).toHaveAttribute(
+      'href',
+      '/merchant/jobs/jp1'
+    );
+  });
+
   it('shows the pagination footer with the total count', async () => {
     render(<ManageJobPostsPage />);
     await waitFor(() => {

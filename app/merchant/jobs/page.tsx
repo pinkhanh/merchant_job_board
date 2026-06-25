@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Pagination } from '@/components/Pagination';
 import { PAGE_SIZE } from '@/lib/constants/pagination';
 
@@ -58,7 +59,11 @@ export default function ManageJobPostsPage() {
         <tbody>
           {jobPosts.map((post) => (
             <tr key={post.id} className="border-b border-border hover:bg-primary-surface">
-              <td className="px-4 py-3 text-primary font-medium">{post.title}</td>
+              <td className="px-4 py-3 text-primary font-medium">
+                <Link href={`/merchant/jobs/${post.id}`} className="hover:underline">
+                  {post.title}
+                </Link>
+              </td>
               <td className="px-4 py-3">
                 <span className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${STATUS_BADGE[post.status]}`}>
                   {STATUS_LABEL[post.status] ?? post.status}
