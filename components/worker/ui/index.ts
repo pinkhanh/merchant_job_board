@@ -23,3 +23,4 @@ export { Calendar } from './Calendar';
 export { DatePicker } from './DatePicker';
 export { DateRangePicker } from './DateRangePicker';
 export { AlertDialog } from './AlertDialog';
+export { headingStyles } from './headingStyles';
