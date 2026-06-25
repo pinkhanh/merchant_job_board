@@ -124,7 +124,15 @@ function JobsPageContent() {
         <div className="flex gap-6 overflow-x-auto pb-4 mb-4">
           {counts.merchant.map((m) => (
             <button key={m.id} onClick={() => setMerchantId(m.id === merchantId ? '' : m.id)} className="flex flex-col items-center gap-1 shrink-0">
-              <div className={`w-[72px] h-[72px] rounded-full bg-worker-accent ${m.id === merchantId ? 'border-2 border-worker-primary' : ''}`} />
+              {m.logoUrl ? (
+                <img
+                  src={m.logoUrl}
+                  alt={m.brandName}
+                  className={`w-[72px] h-[72px] rounded-full object-cover ${m.id === merchantId ? 'border-2 border-worker-primary' : ''}`}
+                />
+              ) : (
+                <div className={`w-[72px] h-[72px] rounded-full bg-worker-accent ${m.id === merchantId ? 'border-2 border-worker-primary' : ''}`} />
+              )}
               <span className="text-xs text-worker-text-secondary">{m.brandName}</span>
             </button>
           ))}
@@ -187,7 +195,15 @@ function JobsPageContent() {
                 href={`/jobs/${job.id}`}
                 className="bg-white border-l-[3px] border-worker-primary rounded-worker-md shadow-worker-card p-5 flex gap-4"
               >
-                <div className="w-14 h-14 rounded-full bg-worker-accent shrink-0" />
+                {job.merchant.logoUrl ? (
+                  <img
+                    src={job.merchant.logoUrl}
+                    alt={job.merchant.brandName}
+                    className="w-14 h-14 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-worker-accent shrink-0" />
+                )}
                 <div className="flex-1">
                   <p className="text-sm text-worker-text-secondary">{job.merchant.brandName}</p>
                   <p className="text-lg font-bold">{job.title}</p>

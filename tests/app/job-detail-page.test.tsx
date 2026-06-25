@@ -49,4 +49,27 @@ describe('JobDetailPage', () => {
       expect(screen.getByText('Ứng tuyển ngay')).toBeDisabled();
     });
   });
+
+  it('renders the merchant logo image when logoUrl is present', async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...liveJob,
+        merchant: { brandName: 'Katinat', logoUrl: 'https://cdn.example.com/katinat-logo.png' },
+      }),
+    });
+    render(<JobDetailPage />);
+    await waitFor(() => {
+      const img = screen.getByRole('img', { name: 'Katinat' });
+      expect(img).toHaveAttribute('src', 'https://cdn.example.com/katinat-logo.png');
+    });
+  });
+
+  it('falls back to the placeholder circle when logoUrl is null', async () => {
+    render(<JobDetailPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Nhân viên pha chế')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('img', { name: 'Katinat' })).not.toBeInTheDocument();
+  });
 });
