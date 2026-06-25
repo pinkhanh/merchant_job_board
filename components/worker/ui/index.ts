@@ -17,4 +17,5 @@ export { ProgressBar } from './ProgressBar';
 export { TextInput } from './TextInput';
 export { TextArea } from './TextArea';
 export { SearchBar } from './SearchBar';
+export { CommandSearch } from './CommandSearch';
 export { MultiSelect } from './MultiSelect';
