@@ -36,4 +36,35 @@ describe('merchantProfileService', () => {
       data: { description: 'x' },
     });
   });
+
+  it('updates jobCategories', async () => {
+    await updateMerchantProfile('m1', { jobCategories: ['Bán hàng', 'Phục vụ'] });
+
+    expect(prisma.merchant.update).toHaveBeenCalledWith({
+      where: { id: 'm1' },
+      data: { jobCategories: ['Bán hàng', 'Phục vụ'] },
+    });
+  });
+
+  it('returns logoUrl/bannerUrl/industry/jobCategories from the merchant row as-is', async () => {
+    (prisma.merchant.findUnique as any).mockResolvedValue({
+      id: 'm1',
+      brandName: 'Jollibee',
+      logoUrl: 'https://cdn.example.com/logo.png',
+      bannerUrl: 'https://cdn.example.com/banner.png',
+      industry: 'F&B',
+      jobCategories: ['Bán hàng'],
+    });
+
+    const profile = await getMerchantProfile('m1');
+
+    expect(profile).toEqual({
+      id: 'm1',
+      brandName: 'Jollibee',
+      logoUrl: 'https://cdn.example.com/logo.png',
+      bannerUrl: 'https://cdn.example.com/banner.png',
+      industry: 'F&B',
+      jobCategories: ['Bán hàng'],
+    });
+  });
 });
