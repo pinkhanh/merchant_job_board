@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 type Job = {
   id: string;
@@ -38,7 +39,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
       <div className="bg-white rounded-t-worker-md sm:rounded-worker-md w-full sm:w-[480px] shadow-worker-modal p-6">
         {success ? (
           <div className="text-center py-6">
-            <p className="text-4xl mb-3">✅</p>
+            <CheckCircleIcon className="w-12 h-12 text-worker-success mx-auto mb-3" />
             <p className="text-lg font-bold mb-2">Đã gửi hồ sơ!</p>
             <p className="text-worker-text-secondary text-sm mb-4">
               Nhà tuyển dụng sẽ liên hệ qua số điện thoại bạn đã cung cấp.
@@ -51,7 +52,9 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
           <>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Ứng tuyển</h2>
-              <button onClick={onClose} aria-label="Đóng">✕</button>
+              <button onClick={onClose} aria-label="Đóng">
+                <XMarkIcon className="w-5 h-5" />
+              </button>
             </div>
 
             <p className="text-xs text-worker-text-secondary mb-1">Bạn đang ứng tuyển vào:</p>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { MapPinIcon, ChevronDownIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 const CITIES: Record<string, string[]> = {
   'Hồ Chí Minh': ['Quận 1', 'Quận 3', 'Quận 7', 'Bình Thạnh'],
@@ -48,7 +49,9 @@ export function WorkerHeader() {
           onClick={() => setOpen((o) => !o)}
           className="flex items-center gap-1 bg-white border border-worker-border rounded-worker-pill px-3.5 py-2 text-sm font-medium"
         >
-          📍 {currentLabel} ▾
+          <MapPinIcon className="w-4 h-4" />
+          {currentLabel}
+          <ChevronDownIcon className="w-4 h-4" />
         </button>
 
         {open && (
@@ -85,8 +88,9 @@ export function WorkerHeader() {
               </select>
             </label>
 
-            <button onClick={useMyLocation} className="text-worker-primary text-sm text-left">
-              🔄 Dùng vị trí của tôi
+            <button onClick={useMyLocation} className="text-worker-primary text-sm text-left flex items-center gap-1">
+              <ArrowPathIcon className="w-4 h-4" />
+              Dùng vị trí của tôi
             </button>
             {geoError && <p className="text-xs text-worker-hot">{geoError}</p>}
 

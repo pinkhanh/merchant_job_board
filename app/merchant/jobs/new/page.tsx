@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStoreSearch } from '@/lib/hooks/useStoreSearch';
 import { StoreFilterBar } from '@/components/StoreFilterBar';
+import { CheckIcon } from '@heroicons/react/24/outline';
 
 type WizardState = {
   storeIds: string[];
@@ -115,7 +116,7 @@ export default function JobWizardPage() {
                 : 'bg-white border-2 border-border text-text-secondary'
             }`}
           >
-            {s.n < step ? '✓' : s.n}
+            {s.n < step ? <CheckIcon className="w-4 h-4" /> : s.n}
           </div>
           <span className={`text-xs ${s.n === step ? 'text-primary font-semibold' : 'text-text-secondary'}`}>
             {s.label}
