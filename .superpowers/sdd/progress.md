@@ -5,3 +5,4 @@ Worktree: C:\Users\jasmi\merchant-job-board\.claude\worktrees\worker-design-syst
 Baseline: 254/255 tests passing (db-connection.test.ts fails without a real DB — pre-existing, unrelated).
 
 ## Tasks
+Task 1: complete (commit 4df4412..b83cee8, review clean)
