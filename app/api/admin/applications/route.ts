@@ -12,7 +12,10 @@ export async function GET(req: Request) {
   const applications = await listAllApplications({
     merchantId: searchParams.get('merchantId') ?? undefined,
     jobPostId: searchParams.get('jobPostId') ?? undefined,
+    jobPostTitle: searchParams.get('jobPostTitle') ?? undefined,
     importStatus: (searchParams.get('importStatus') as any) ?? undefined,
+    appliedFrom: searchParams.get('appliedFrom') ?? undefined,
+    appliedTo: searchParams.get('appliedTo') ?? undefined,
   });
   return NextResponse.json(applications);
 }

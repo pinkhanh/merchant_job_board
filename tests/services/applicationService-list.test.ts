@@ -43,6 +43,43 @@ describe('applicationService.listApplications', () => {
     expect(prisma.application.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
     expect(prisma.application.count).toHaveBeenCalledWith({ where: expectedWhere });
   });
+
+  it('applies an appliedFrom/appliedTo date range filter on appliedAt, scoped to the merchant', async () => {
+    (prisma.application.findMany as any).mockResolvedValue([]);
+    (prisma.application.count as any).mockResolvedValue(0);
+
+    await listApplications('m1', { appliedFrom: '2026-01-01', appliedTo: '2026-01-31' });
+
+    const expectedWhere = {
+      jobPost: { merchantId: 'm1' },
+      appliedAt: { gte: new Date('2026-01-01'), lte: new Date('2026-01-31') },
+    };
+    expect(prisma.application.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
+    expect(prisma.application.count).toHaveBeenCalledWith({ where: expectedWhere });
+  });
+
+  it('applies only appliedFrom when appliedTo is omitted', async () => {
+    (prisma.application.findMany as any).mockResolvedValue([]);
+    (prisma.application.count as any).mockResolvedValue(0);
+
+    await listApplications('m1', { appliedFrom: '2026-01-01' });
+
+    const expectedWhere = { jobPost: { merchantId: 'm1' }, appliedAt: { gte: new Date('2026-01-01') } };
+    expect(prisma.application.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
+  });
+
+  it('applies a jobPostTitle keyword filter as a case-insensitive contains on jobPost.title, scoped to the merchant', async () => {
+    (prisma.application.findMany as any).mockResolvedValue([]);
+    (prisma.application.count as any).mockResolvedValue(0);
+
+    await listApplications('m1', { jobPostTitle: 'pha che' });
+
+    const expectedWhere = {
+      jobPost: { merchantId: 'm1', title: { contains: 'pha che', mode: 'insensitive' } },
+    };
+    expect(prisma.application.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
+    expect(prisma.application.count).toHaveBeenCalledWith({ where: expectedWhere });
+  });
 });
 
 describe('applicationService.exportApplicationsCsv', () => {
