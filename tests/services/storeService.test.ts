@@ -33,20 +33,65 @@ describe('storeService.listStores', () => {
   });
 
   it('matches keyword against name or street address, case-insensitively', async () => {
-    (prisma.store.findMany as any).mockResolvedValue([]);
-    (prisma.store.count as any).mockResolvedValue(0);
+    (prisma.store.findMany as any).mockResolvedValue([
+      { id: 's1', name: 'Quan 1 Store', streetAddress: '1 Le Loi' },
+    ]);
 
-    await listStores('m1', { keyword: 'quan 1' });
+    const result = await listStores('m1', { keyword: 'quan 1' });
 
-    const expectedWhere = {
-      merchantId: 'm1',
-      OR: [
-        { name: { contains: 'quan 1', mode: 'insensitive' } },
-        { streetAddress: { contains: 'quan 1', mode: 'insensitive' } },
-      ],
-    };
-    expect(prisma.store.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
-    expect(prisma.store.count).toHaveBeenCalledWith({ where: expectedWhere });
+    // Keyword search fetches merchant-scoped candidates and filters/paginates
+    // in application code (so diacritics can be normalized), rather than
+    // pushing `contains`/`mode: insensitive` down to Prisma.
+    expect(prisma.store.findMany).toHaveBeenCalledWith({
+      where: { merchantId: 'm1' },
+      orderBy: { name: 'asc' },
+    });
+    expect(prisma.store.count).not.toHaveBeenCalled();
+    expect(result).toEqual({ items: [{ id: 's1', name: 'Quan 1 Store', streetAddress: '1 Le Loi' }], total: 1 });
+  });
+
+  it('matches keyword against name or street address, diacritic-insensitively', async () => {
+    (prisma.store.findMany as any).mockResolvedValue([
+      { id: 's1', name: 'Jollibee Âu Cơ', streetAddress: '123 Âu Cơ' },
+      { id: 's2', name: 'Highlands Thanh Hóa', streetAddress: '45 Lê Lợi' },
+      { id: 's3', name: 'No Match Store', streetAddress: '99 Khong Lien Quan' },
+    ]);
+
+    const result = await listStores('m1', { keyword: 'Au Co' });
+
+    expect(result.items).toEqual([{ id: 's1', name: 'Jollibee Âu Cơ', streetAddress: '123 Âu Cơ' }]);
+    expect(result.total).toBe(1);
+  });
+
+  it('matches a diacritic keyword against a plain-text field (and vice versa)', async () => {
+    (prisma.store.findMany as any).mockResolvedValue([
+      { id: 's1', name: 'Highlands Coffee', streetAddress: '45 Le Loi' },
+    ]);
+
+    const byPlainKeyword = await listStores('m1', { keyword: 'le loi' });
+    expect(byPlainKeyword.items.map((s: any) => s.id)).toEqual(['s1']);
+
+    const byAccentedKeyword = await listStores('m1', { keyword: 'Lê Lợi' });
+    expect(byAccentedKeyword.items.map((s: any) => s.id)).toEqual(['s1']);
+  });
+
+  it('paginates keyword search results in application code', async () => {
+    const allStores = Array.from({ length: 15 }, (_, i) => ({
+      id: `s${i + 1}`,
+      name: `Âu Cơ Store ${String(i + 1).padStart(2, '0')}`,
+      streetAddress: `${i + 1} Âu Cơ`,
+    }));
+    (prisma.store.findMany as any).mockResolvedValue(allStores);
+
+    const page1 = await listStores('m1', { keyword: 'au co' });
+    expect(page1.items).toHaveLength(10);
+    expect(page1.total).toBe(15);
+    expect(page1.items[0].id).toBe('s1');
+
+    const page2 = await listStores('m1', { keyword: 'au co', page: 2 });
+    expect(page2.items).toHaveLength(5);
+    expect(page2.total).toBe(15);
+    expect(page2.items[0].id).toBe('s11');
   });
 
   it('filters by city and district', async () => {
@@ -57,5 +102,19 @@ describe('storeService.listStores', () => {
 
     const expectedWhere = { merchantId: 'm1', city: 'Hà Nội', district: 'Cầu Giấy' };
     expect(prisma.store.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
+  });
+
+  it('combines keyword with city/district filters when fetching candidates', async () => {
+    (prisma.store.findMany as any).mockResolvedValue([
+      { id: 's1', name: 'Jollibee Âu Cơ', streetAddress: '123 Âu Cơ' },
+    ]);
+
+    const result = await listStores('m1', { keyword: 'au co', city: 'Hà Nội', district: 'Cầu Giấy' });
+
+    expect(prisma.store.findMany).toHaveBeenCalledWith({
+      where: { merchantId: 'm1', city: 'Hà Nội', district: 'Cầu Giấy' },
+      orderBy: { name: 'asc' },
+    });
+    expect(result.items).toHaveLength(1);
   });
 });
