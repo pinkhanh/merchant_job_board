@@ -6,3 +6,4 @@ Baseline: 254/255 tests passing (db-connection.test.ts fails without a real DB â
 
 ## Tasks
 Task 1: complete (commit 4df4412..b83cee8, review clean)
+Task 2: complete (commit e081ab5..9cb2ba9, review clean)
