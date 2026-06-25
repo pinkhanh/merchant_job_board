@@ -28,4 +28,13 @@ describe('DateRangePicker', () => {
     fireEvent.click(screen.getAllByText('12')[0]);
     expect(onChange).toHaveBeenCalledWith({ start: new Date(2024, 8, 12), end: null });
   });
+
+  it('extends the range backward and closes the popover when picking a date before the current start', () => {
+    const onChange = vi.fn();
+    render(<DateRangePicker value={{ start: new Date(2024, 8, 15), end: null }} onChange={onChange} />);
+    fireEvent.click(screen.getByText('15/09/2024'));
+    fireEvent.click(screen.getAllByText('12')[0]);
+    expect(onChange).toHaveBeenCalledWith({ start: new Date(2024, 8, 12), end: new Date(2024, 8, 15) });
+    expect(screen.queryAllByLabelText('Tháng sau').length).toBe(0);
+  });
 });

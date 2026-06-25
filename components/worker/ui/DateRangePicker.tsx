@@ -31,8 +31,10 @@ export function DateRangePicker({ label = 'Chọn ngày', value, onChange }: Dat
       onChange({ start: d, end: null });
     } else if (d < value.start) {
       onChange({ start: d, end: value.start });
+      setOpen(false);
     } else {
       onChange({ start: value.start, end: d });
+      setOpen(false);
     }
   }
 

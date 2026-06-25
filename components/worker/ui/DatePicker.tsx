@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { Calendar } from './Calendar';
 
@@ -17,6 +17,12 @@ function formatDate(d: Date) {
 export function DatePicker({ label = 'Chọn ngày', value, onChange }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(value ?? new Date());
+
+  useEffect(() => {
+    if (value) {
+      setMonth(value);
+    }
+  }, [value]);
 
   return (
     <div className="relative inline-block">
