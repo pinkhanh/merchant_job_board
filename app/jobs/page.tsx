@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Spinner } from '@/components/worker/ui/Spinner';
 import { Chips } from '@/components/worker/ui/Chips';
+import { Select } from '@/components/worker/ui/Select';
 
 type JobPost = {
   id: string;
@@ -156,23 +157,26 @@ function JobsPageContent() {
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={minSalary} onChange={(e) => setMinSalary(e.target.value)} className="border border-worker-border rounded-md px-3 py-2 text-sm">
-          <option value="">Tất cả mức lương</option>
-          {counts.minSalary.map((b) => (
-            <option key={b.threshold} value={b.threshold}>
-              ≥ {b.threshold.toLocaleString('vi-VN')} ({b.count})
-            </option>
-          ))}
-        </select>
+        <Select
+          value={minSalary}
+          onChange={setMinSalary}
+          options={[
+            { value: '', label: 'Tất cả mức lương' },
+            ...counts.minSalary.map((b) => ({
+              value: String(b.threshold),
+              label: `≥ ${b.threshold.toLocaleString('vi-VN')} (${b.count})`,
+            })),
+          ]}
+        />
 
-        <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="border border-worker-border rounded-md px-3 py-2 text-sm">
-          <option value="">Tất cả ngành nghề</option>
-          {INDUSTRIES.map((i) => (
-            <option key={i} value={i}>
-              {i} ({counts.industry[i] ?? 0})
-            </option>
-          ))}
-        </select>
+        <Select
+          value={industry}
+          onChange={setIndustry}
+          options={[
+            { value: '', label: 'Tất cả ngành nghề' },
+            ...INDUSTRIES.map((i) => ({ value: i, label: `${i} (${counts.industry[i] ?? 0})` })),
+          ]}
+        />
       </div>
 
       {loading ? (
