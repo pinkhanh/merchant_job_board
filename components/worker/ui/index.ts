@@ -15,3 +15,4 @@ export { SwitchToggle } from './SwitchToggle';
 export { Choicebox } from './Choicebox';
 export { ProgressBar } from './ProgressBar';
 export { TextInput } from './TextInput';
+export { TextArea } from './TextArea';
