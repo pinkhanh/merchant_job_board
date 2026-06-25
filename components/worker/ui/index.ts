@@ -22,3 +22,4 @@ export { MultiSelect } from './MultiSelect';
 export { Calendar } from './Calendar';
 export { DatePicker } from './DatePicker';
 export { DateRangePicker } from './DateRangePicker';
+export { AlertDialog } from './AlertDialog';
