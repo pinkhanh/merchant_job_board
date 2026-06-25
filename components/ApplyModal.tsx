@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Notification } from '@/components/worker/ui/Notification';
+import { Callout } from '@/components/worker/ui/Callout';
 
 type Job = {
   id: string;
@@ -39,12 +41,12 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
       <div className="bg-white rounded-t-worker-md sm:rounded-worker-md w-full sm:w-[480px] shadow-worker-modal p-6">
         {success ? (
           <div className="text-center py-6">
-            <CheckCircleIcon className="w-12 h-12 text-worker-success mx-auto mb-3" />
-            <p className="text-lg font-bold mb-2">Đã gửi hồ sơ!</p>
-            <p className="text-worker-text-secondary text-sm mb-4">
-              Nhà tuyển dụng sẽ liên hệ qua số điện thoại bạn đã cung cấp.
-            </p>
-            <button onClick={onClose} className="text-worker-primary text-sm font-semibold">
+            <Notification
+              variant="success"
+              title="Đã gửi hồ sơ!"
+              message="Nhà tuyển dụng sẽ liên hệ qua số điện thoại bạn đã cung cấp."
+            />
+            <button onClick={onClose} className="text-worker-primary text-sm font-semibold mt-4">
               Đóng
             </button>
           </div>
@@ -86,7 +88,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
                 />
               </label>
 
-              {error && <p role="alert" className="text-worker-hot text-sm">{error}</p>}
+              {error && <Callout variant="error" message={error} />}
 
               <button type="submit" className="bg-worker-primary text-white rounded-worker-pill py-3 font-bold mt-1">
                 Xác nhận ứng tuyển
