@@ -13,7 +13,10 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const result = await listApplications(session.merchantId!, {
     jobPostId: searchParams.get('jobPostId') ?? undefined,
+    jobPostTitle: searchParams.get('jobPostTitle') ?? undefined,
     importStatus: (searchParams.get('importStatus') as any) ?? undefined,
+    appliedFrom: searchParams.get('appliedFrom') ?? undefined,
+    appliedTo: searchParams.get('appliedTo') ?? undefined,
     page: parsePage(searchParams.get('page')),
   });
   return NextResponse.json(result);

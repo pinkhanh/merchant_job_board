@@ -5,17 +5,34 @@ import { PAGE_SIZE } from '@/lib/constants/pagination';
 
 export type ApplicationFilters = {
   jobPostId?: string;
+  jobPostTitle?: string;
   importStatus?: 'new' | 'imported';
+  appliedFrom?: string;
+  appliedTo?: string;
   page?: number;
 };
 
 export class ApplicationNotFoundError extends Error {}
 
+function appliedAtRangeFilter(filters: ApplicationFilters) {
+  if (!filters.appliedFrom && !filters.appliedTo) return {};
+  return {
+    appliedAt: {
+      ...(filters.appliedFrom ? { gte: new Date(filters.appliedFrom) } : {}),
+      ...(filters.appliedTo ? { lte: new Date(filters.appliedTo) } : {}),
+    },
+  };
+}
+
 export async function listApplications(merchantId: string, filters: ApplicationFilters = {}) {
   const where = {
-    jobPost: { merchantId },
+    jobPost: {
+      merchantId,
+      ...(filters.jobPostTitle ? { title: { contains: filters.jobPostTitle, mode: Prisma.QueryMode.insensitive } } : {}),
+    },
     ...(filters.jobPostId ? { jobPostId: filters.jobPostId } : {}),
     ...(filters.importStatus ? { importStatus: filters.importStatus } : {}),
+    ...appliedAtRangeFilter(filters),
   };
   const paginate = filters.page != null;
 

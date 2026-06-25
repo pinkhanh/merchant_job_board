@@ -13,7 +13,13 @@ describe('GET /api/admin/applications', () => {
   it('returns applications without a phoneNumber field', async () => {
     vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
     vi.mocked(adminApplicationService.listAllApplications).mockResolvedValue([
-      { id: 'app1', applicantName: 'A', importStatus: 'new', appliedAt: new Date(), jobPost: { title: 'x' } },
+      {
+        id: 'app1',
+        applicantName: 'A',
+        importStatus: 'new',
+        appliedAt: new Date(),
+        jobPost: { title: 'x', merchant: { brandName: 'Merchant X' } },
+      },
     ]);
 
     const res = await GET(new Request('http://localhost/api/admin/applications'));
@@ -26,5 +32,25 @@ describe('GET /api/admin/applications', () => {
     vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
     const res = await GET(new Request('http://localhost/api/admin/applications'));
     expect(res.status).toBe(401);
+  });
+
+  it('passes merchantId, jobPost, importStatus, and applied date range filters through', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminApplicationService.listAllApplications).mockResolvedValue([]);
+
+    await GET(
+      new Request(
+        'http://localhost/api/admin/applications?merchantId=m1&jobPostId=jp1&jobPostTitle=pha+che&importStatus=imported&appliedFrom=2026-01-01&appliedTo=2026-01-31'
+      )
+    );
+
+    expect(adminApplicationService.listAllApplications).toHaveBeenCalledWith({
+      merchantId: 'm1',
+      jobPostId: 'jp1',
+      jobPostTitle: 'pha che',
+      importStatus: 'imported',
+      appliedFrom: '2026-01-01',
+      appliedTo: '2026-01-31',
+    });
   });
 });

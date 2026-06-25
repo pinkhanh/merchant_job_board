@@ -21,7 +21,10 @@ describe('applications API', () => {
 
     expect(applicationService.listApplications).toHaveBeenCalledWith('m1', {
       jobPostId: undefined,
+      jobPostTitle: undefined,
       importStatus: undefined,
+      appliedFrom: undefined,
+      appliedTo: undefined,
       page: 1,
     });
     expect(res.status).toBe(200);
@@ -36,8 +39,31 @@ describe('applications API', () => {
 
     expect(applicationService.listApplications).toHaveBeenCalledWith('m1', {
       jobPostId: undefined,
+      jobPostTitle: undefined,
       importStatus: undefined,
+      appliedFrom: undefined,
+      appliedTo: undefined,
       page: 3,
+    });
+  });
+
+  it('GET passes jobPostId, importStatus, and applied date range filters through', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
+    vi.mocked(applicationService.listApplications).mockResolvedValue({ items: [], total: 0 } as any);
+
+    await GET(
+      new Request(
+        'http://localhost/api/applications?jobPostId=jp1&importStatus=imported&appliedFrom=2026-01-01&appliedTo=2026-01-31'
+      )
+    );
+
+    expect(applicationService.listApplications).toHaveBeenCalledWith('m1', {
+      jobPostId: 'jp1',
+      jobPostTitle: undefined,
+      importStatus: 'imported',
+      appliedFrom: '2026-01-01',
+      appliedTo: '2026-01-31',
+      page: 1,
     });
   });
 
