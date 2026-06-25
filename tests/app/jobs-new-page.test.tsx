@@ -62,4 +62,84 @@ describe('JobWizardPage', () => {
       expect(screen.getByText('Xem thêm')).toBeInTheDocument();
     });
   });
+
+  async function goToStep2() {
+    render(<JobWizardPage />);
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+    fireEvent.click(screen.getByLabelText('Trụ Sở Chính'));
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
+  }
+
+  it('does not show a Back button on Step 1', async () => {
+    render(<JobWizardPage />);
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+    expect(screen.queryByText('Quay lại')).not.toBeInTheDocument();
+  });
+
+  it('shows a Back button on Step 2 that returns to Step 1 and preserves selection', async () => {
+    await goToStep2();
+    expect(screen.getByText('Quay lại')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Quay lại'));
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+    expect((screen.getByLabelText('Trụ Sở Chính') as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('navigates Step 2 -> Step 3 -> back to Step 2 preserving entered title', async () => {
+    await goToStep2();
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByText('Quay lại'));
+
+    fireEvent.click(screen.getByText('Quay lại'));
+    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
+    expect((screen.getByLabelText('Tên vị trí tuyển dụng') as HTMLInputElement).value).toBe('Nhân viên bán hàng');
+  });
+
+  it('shows a Back button on Step 4 that returns to Step 3', async () => {
+    await goToStep2();
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByText('Tiếp theo'));
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
+
+    fireEvent.click(screen.getByText('Quay lại'));
+    await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
+  });
+
+  it('shows salaryMin, salaryMax inputs and salaryType selector on Step 2', async () => {
+    await goToStep2();
+    expect(screen.getByLabelText('Lương tối thiểu')).toBeInTheDocument();
+    expect(screen.getByLabelText('Lương tối đa')).toBeInTheDocument();
+    expect(screen.getByText('Theo giờ')).toBeInTheDocument();
+    expect(screen.getAllByText('Theo ca').length).toBeGreaterThanOrEqual(2); // shared with employmentType pills
+    expect(screen.getByText('Theo tháng')).toBeInTheDocument();
+    expect(screen.getByText('Thỏa thuận')).toBeInTheDocument();
+  });
+
+  it('sends salaryMin, salaryMax and salaryType in the publish payload', async () => {
+    await goToStep2();
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
+    fireEvent.change(screen.getByLabelText('Lương tối thiểu'), { target: { value: '5000000' } });
+    fireEvent.change(screen.getByLabelText('Lương tối đa'), { target: { value: '8000000' } });
+    fireEvent.click(screen.getByText('Theo tháng'));
+
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByText('Tiếp theo'));
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng tin' }));
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith('/merchant/jobs');
+    });
+
+    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/jobs');
+    expect(jobsCall).toBeTruthy();
+    const body = JSON.parse(jobsCall[1].body);
+    expect(body.salaryMin).toBe(5000000);
+    expect(body.salaryMax).toBe(8000000);
+    expect(body.salaryType).toBe('monthly');
+  });
 });
