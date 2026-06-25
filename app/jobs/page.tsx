@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Spinner } from '@/components/worker/ui/Spinner';
+import { Chips } from '@/components/worker/ui/Chips';
 
 type JobPost = {
   id: string;
@@ -144,20 +145,14 @@ function JobsPageContent() {
       )}
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {EMPLOYMENT_TYPES.map((t) => {
-          const active = employmentTypes.includes(t.value);
-          return (
-            <button
-              key={t.value}
-              onClick={() => toggleEmploymentType(t.value)}
-              className={`rounded-worker-pill px-4 py-2 text-sm border ${
-                active ? 'bg-worker-accent border-worker-primary text-worker-primary' : 'bg-white border-worker-border'
-              }`}
-            >
-              {t.label} ({counts.employmentType[t.value] ?? 0})
-            </button>
-          );
-        })}
+        {EMPLOYMENT_TYPES.map((t) => (
+          <Chips
+            key={t.value}
+            label={`${t.label} (${counts.employmentType[t.value] ?? 0})`}
+            variant={employmentTypes.includes(t.value) ? 'outline' : 'secondary'}
+            onClick={() => toggleEmploymentType(t.value)}
+          />
+        ))}
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
