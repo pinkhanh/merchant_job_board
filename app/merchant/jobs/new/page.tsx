@@ -10,6 +10,8 @@ type WizardState = {
   title: string;
   industry: string;
   employmentType: 'part_time' | 'shift' | 'seasonal';
+  salaryMin: string;
+  salaryMax: string;
   salaryType: 'hourly' | 'shift' | 'monthly' | 'negotiable';
   deadline: string;
   description: string;
@@ -19,6 +21,13 @@ const EMPLOYMENT_TYPES = [
   { value: 'part_time', label: 'Bán thời gian' },
   { value: 'shift', label: 'Theo ca' },
   { value: 'seasonal', label: 'Thời vụ' },
+] as const;
+
+const SALARY_TYPES = [
+  { value: 'hourly', label: 'Theo giờ' },
+  { value: 'shift', label: 'Theo ca' },
+  { value: 'monthly', label: 'Theo tháng' },
+  { value: 'negotiable', label: 'Thỏa thuận' },
 ] as const;
 
 export default function JobWizardPage() {
@@ -31,6 +40,8 @@ export default function JobWizardPage() {
     title: '',
     industry: 'F&B',
     employmentType: 'part_time',
+    salaryMin: '',
+    salaryMax: '',
     salaryType: 'hourly',
     deadline: '',
     description: '',
@@ -72,6 +83,8 @@ export default function JobWizardPage() {
         title: state.title,
         industry: state.industry,
         employmentType: state.employmentType,
+        salaryMin: state.salaryMin === '' ? undefined : Number(state.salaryMin),
+        salaryMax: state.salaryMax === '' ? undefined : Number(state.salaryMax),
         salaryType: state.salaryType,
         schedule: { days: ['mon'], start: '08:00', end: '17:00' },
         deadline: state.deadline,
@@ -114,9 +127,21 @@ export default function JobWizardPage() {
   );
 
   const primaryButton = 'bg-primary text-white rounded-md px-5 py-2.5 font-semibold hover:bg-primary-hover';
+  const secondaryButton =
+    'bg-white text-text-secondary border border-border rounded-md px-5 py-2.5 font-semibold hover:border-primary hover:text-primary';
   const inputClass =
     'border border-border rounded-md px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10 w-full';
   const card = 'bg-white border border-border rounded-lg shadow-card p-8';
+
+  function goBack() {
+    setStep((s) => s - 1);
+  }
+
+  const backButton = (
+    <button onClick={goBack} className={secondaryButton}>
+      Quay lại
+    </button>
+  );
 
   if (step === 1) {
     return (
@@ -220,9 +245,66 @@ export default function JobWizardPage() {
             />
           </div>
 
-          <button onClick={generateDescription} className={`${primaryButton} self-start`}>
-            Tiếp theo
-          </button>
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-1 flex-1">
+              <label htmlFor="salaryMin" className="text-xs font-semibold uppercase tracking-wide">
+                Lương tối thiểu
+              </label>
+              <input
+                id="salaryMin"
+                type="number"
+                min={0}
+                value={state.salaryMin}
+                onChange={(e) => setState((s) => ({ ...s, salaryMin: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex flex-col gap-1 flex-1">
+              <label htmlFor="salaryMax" className="text-xs font-semibold uppercase tracking-wide">
+                Lương tối đa
+              </label>
+              <input
+                id="salaryMax"
+                type="number"
+                min={0}
+                value={state.salaryMax}
+                onChange={(e) => setState((s) => ({ ...s, salaryMax: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <fieldset className="flex gap-2">
+            <legend className="text-xs font-semibold uppercase tracking-wide mb-1">Hình thức trả lương</legend>
+            {SALARY_TYPES.map((t) => (
+              <label
+                key={t.value}
+                htmlFor={`salaryType-${t.value}`}
+                className={`px-4 py-2 rounded-pill border text-sm cursor-pointer ${
+                  state.salaryType === t.value
+                    ? 'bg-primary-surface border-primary text-primary font-semibold'
+                    : 'border-border text-text-secondary'
+                }`}
+              >
+                <input
+                  id={`salaryType-${t.value}`}
+                  type="radio"
+                  name="salaryType"
+                  className="sr-only"
+                  checked={state.salaryType === t.value}
+                  onChange={() => setState((s) => ({ ...s, salaryType: t.value }))}
+                />
+                {t.label}
+              </label>
+            ))}
+          </fieldset>
+
+          <div className="flex gap-2">
+            <button onClick={generateDescription} className={primaryButton}>
+              Tiếp theo
+            </button>
+            {backButton}
+          </div>
         </div>
       </div>
     );
@@ -239,9 +321,12 @@ export default function JobWizardPage() {
             onChange={(e) => setState((s) => ({ ...s, description: e.target.value }))}
             className={`${inputClass} min-h-[200px]`}
           />
-          <button onClick={() => setStep(4)} className={`${primaryButton} self-start`}>
-            Tiếp theo
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => setStep(4)} className={primaryButton}>
+              Tiếp theo
+            </button>
+            {backButton}
+          </div>
         </div>
       </div>
     );
@@ -254,9 +339,12 @@ export default function JobWizardPage() {
         <h1 className="text-lg font-bold">Xem lại & Đăng tin</h1>
         <p className="font-semibold">{state.title}</p>
         <p className="text-sm text-text-secondary whitespace-pre-line">{state.description}</p>
-        <button onClick={publish} className={`${primaryButton} self-start`}>
-          Đăng tin
-        </button>
+        <div className="flex gap-2">
+          <button onClick={publish} className={primaryButton}>
+            Đăng tin
+          </button>
+          {backButton}
+        </div>
       </div>
     </div>
   );
