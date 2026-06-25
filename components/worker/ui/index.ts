@@ -20,3 +20,4 @@ export { SearchBar } from './SearchBar';
 export { CommandSearch } from './CommandSearch';
 export { MultiSelect } from './MultiSelect';
 export { Calendar } from './Calendar';
+export { DatePicker } from './DatePicker';
