@@ -6,6 +6,7 @@ import { Spinner } from '@/components/worker/ui/Spinner';
 import { Chips } from '@/components/worker/ui/Chips';
 import { Select } from '@/components/worker/ui/Select';
 import { Avatar } from '@/components/worker/ui/Avatar';
+import { ShowMore } from '@/components/worker/ui/ShowMore';
 
 type JobPost = {
   id: string;
@@ -216,9 +217,7 @@ function JobsPageContent() {
 
       {jobs.length < total && (
         <div className="text-center mt-6">
-          <button onClick={() => load(page + 1, true)} className="border border-worker-border rounded-worker-pill px-6 py-2.5 text-sm font-medium">
-            Tải thêm
-          </button>
+          <ShowMore onClick={() => load(page + 1, true)} label="Tải thêm" />
         </div>
       )}
     </div>
