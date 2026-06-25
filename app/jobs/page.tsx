@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Spinner } from '@/components/worker/ui/Spinner';
 
 type JobPost = {
   id: string;
@@ -52,6 +53,7 @@ function JobsPageContent() {
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<Counts>({ employmentType: {}, industry: {}, merchant: [], minSalary: [] });
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [employmentTypes, setEmploymentTypes] = useState<string[]>(
     searchParams.get('employmentType')?.split(',').filter(Boolean) ?? []
   );
@@ -75,12 +77,14 @@ function JobsPageContent() {
   }
 
   async function load(forPage: number, append: boolean) {
+    if (!append) setLoading(true);
     const res = await fetch(`/api/worker/jobs?${queryString(forPage)}`);
     const body = await res.json();
     setJobs((prev) => (append ? [...prev, ...body.jobs] : body.jobs));
     setTotal(body.total);
     setCounts(body.counts);
     setPage(forPage);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -176,7 +180,11 @@ function JobsPageContent() {
         </select>
       </div>
 
-      {jobs.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Spinner />
+        </div>
+      ) : jobs.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-worker-text-secondary mb-4">
             Không tìm thấy việc làm phù hợp. Thử mở rộng khu vực hoặc điều chỉnh bộ lọc.
