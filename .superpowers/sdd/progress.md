@@ -8,3 +8,4 @@ Baseline: 254/255 tests passing (db-connection.test.ts fails without a real DB â
 Task 1: complete (commit 4df4412..b83cee8, review clean)
 Task 2: complete (commit e081ab5..9cb2ba9, review clean)
 Task 3: complete (commit 0fdfccd..c80f8f5, review clean)
+Task 4: complete (commit 79fc5f5..8e14a6f, review clean)
