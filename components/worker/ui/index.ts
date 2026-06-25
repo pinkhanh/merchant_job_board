@@ -10,3 +10,4 @@ export { IconButton } from './IconButton';
 export { Breadcrumb } from './Breadcrumb';
 export { Tabs } from './Tabs';
 export { Checkbox } from './Checkbox';
+export { RadioButton } from './RadioButton';
