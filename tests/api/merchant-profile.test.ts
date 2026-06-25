@@ -33,6 +33,22 @@ describe('merchant profile API', () => {
     expect(res.status).toBe(200);
   });
 
+  it('PATCH passes jobCategories through to the service', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
+    vi.mocked(profileService.updateMerchantProfile).mockResolvedValue({} as any);
+
+    const req = new Request('http://localhost/api/merchant/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ jobCategories: ['Bán hàng', 'Phục vụ'] }),
+    });
+    const res = await PATCH(req);
+
+    expect(profileService.updateMerchantProfile).toHaveBeenCalledWith('m1', {
+      jobCategories: ['Bán hàng', 'Phục vụ'],
+    });
+    expect(res.status).toBe(200);
+  });
+
   it('GET returns 401 when there is no merchant session', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
 
