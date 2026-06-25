@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Spinner } from '@/components/worker/ui/Spinner';
 import { Chips } from '@/components/worker/ui/Chips';
 import { Select } from '@/components/worker/ui/Select';
+import { Avatar } from '@/components/worker/ui/Avatar';
 
 type JobPost = {
   id: string;
@@ -130,15 +131,9 @@ function JobsPageContent() {
         <div className="flex gap-6 overflow-x-auto pb-4 mb-4">
           {counts.merchant.map((m) => (
             <button key={m.id} onClick={() => setMerchantId(m.id === merchantId ? '' : m.id)} className="flex flex-col items-center gap-1 shrink-0">
-              {m.logoUrl ? (
-                <img
-                  src={m.logoUrl}
-                  alt={m.brandName}
-                  className={`w-[72px] h-[72px] rounded-full object-cover ${m.id === merchantId ? 'border-2 border-worker-primary' : ''}`}
-                />
-              ) : (
-                <div className={`w-[72px] h-[72px] rounded-full bg-worker-accent ${m.id === merchantId ? 'border-2 border-worker-primary' : ''}`} />
-              )}
+              <span className={m.id === merchantId ? 'rounded-full border-2 border-worker-primary' : ''}>
+                <Avatar variant={m.logoUrl ? 'image' : 'person'} src={m.logoUrl ?? undefined} alt={m.brandName} size={72} />
+              </span>
               <span className="text-xs text-worker-text-secondary">{m.brandName}</span>
             </button>
           ))}
@@ -202,15 +197,7 @@ function JobsPageContent() {
                 href={`/jobs/${job.id}`}
                 className="bg-white border-l-[3px] border-worker-primary rounded-worker-md shadow-worker-card p-5 flex gap-4"
               >
-                {job.merchant.logoUrl ? (
-                  <img
-                    src={job.merchant.logoUrl}
-                    alt={job.merchant.brandName}
-                    className="w-14 h-14 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-worker-accent shrink-0" />
-                )}
+                <Avatar variant={job.merchant.logoUrl ? 'image' : 'person'} src={job.merchant.logoUrl ?? undefined} alt={job.merchant.brandName} size={56} />
                 <div className="flex-1">
                   <p className="text-sm text-worker-text-secondary">{job.merchant.brandName}</p>
                   <p className="text-lg font-bold">{job.title}</p>

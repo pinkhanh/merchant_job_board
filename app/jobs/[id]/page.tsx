@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ApplyModal } from '@/components/ApplyModal';
+import { Avatar } from '@/components/worker/ui/Avatar';
 
 type JobDetail = {
   id: string;
@@ -38,15 +39,7 @@ export default function JobDetailPage() {
   return (
     <div className="px-4 py-6 max-w-[1100px] mx-auto pb-24">
       <div className="flex items-center gap-2 mb-1">
-        {job.merchant.logoUrl ? (
-          <img
-            src={job.merchant.logoUrl}
-            alt={job.merchant.brandName}
-            className="w-8 h-8 rounded-full object-cover shrink-0"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-worker-accent shrink-0" />
-        )}
+        <Avatar variant={job.merchant.logoUrl ? 'image' : 'person'} src={job.merchant.logoUrl ?? undefined} alt={job.merchant.brandName} size={32} />
         <p className="text-sm text-worker-text-secondary">{job.merchant.brandName}</p>
       </div>
       <h1 className="text-2xl font-extrabold mb-3">{job.title}</h1>
