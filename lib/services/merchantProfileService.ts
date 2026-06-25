@@ -8,6 +8,7 @@ export async function getMerchantProfile(merchantId: string) {
 const updateMerchantProfileSchema = z.object({
   description: z.string().max(500).optional(),
   hotline: z.string().optional(),
+  jobCategories: z.array(z.string()).optional(),
 });
 
 export async function updateMerchantProfile(merchantId: string, rawData: unknown) {
