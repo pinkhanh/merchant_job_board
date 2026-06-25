@@ -66,4 +66,37 @@ describe('JobsPage', () => {
       expect(screen.getByText(/Không tìm thấy việc làm phù hợp/)).toBeInTheDocument();
     });
   });
+
+  it('renders the merchant logo image on the job card and filter pill when logoUrl is present', async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...sampleResponse,
+        jobs: [
+          {
+            ...sampleResponse.jobs[0],
+            merchant: { brandName: 'Katinat', logoUrl: 'https://cdn.example.com/katinat-logo.png' },
+          },
+        ],
+        counts: {
+          ...sampleResponse.counts,
+          merchant: [{ id: 'm1', brandName: 'Katinat', logoUrl: 'https://cdn.example.com/katinat-logo.png', count: 1 }],
+        },
+      }),
+    });
+    render(<JobsPage />);
+    await waitFor(() => {
+      const images = screen.getAllByRole('img', { name: 'Katinat' });
+      expect(images.length).toBe(2);
+      images.forEach((img) => expect(img).toHaveAttribute('src', 'https://cdn.example.com/katinat-logo.png'));
+    });
+  });
+
+  it('falls back to the placeholder circle when logoUrl is null', async () => {
+    render(<JobsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Nhân viên pha chế')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('img', { name: 'Katinat' })).not.toBeInTheDocument();
+  });
 });
