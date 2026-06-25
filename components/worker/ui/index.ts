@@ -8,3 +8,4 @@ export { Callout } from './Callout';
 export { Button } from './Button';
 export { IconButton } from './IconButton';
 export { Breadcrumb } from './Breadcrumb';
+export { Tabs } from './Tabs';
