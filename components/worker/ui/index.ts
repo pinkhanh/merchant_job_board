@@ -6,3 +6,4 @@ export { ShowMore } from './ShowMore';
 export { Notification } from './Notification';
 export { Callout } from './Callout';
 export { Button } from './Button';
+export { IconButton } from './IconButton';
