@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useStoreSearch } from '@/lib/hooks/useStoreSearch';
 import { StoreFilterBar } from '@/components/StoreFilterBar';
 import { CheckIcon } from '@heroicons/react/24/outline';
+import { VIETNAM_PROVINCES } from '@/lib/constants/vietnamProvinces';
 
 type WizardState = {
   storeIds: string[];
@@ -17,6 +18,8 @@ type WizardState = {
   deadline: string;
   description: string;
 };
+
+type StoreSelectionMode = 'manual' | 'region';
 
 const EMPLOYMENT_TYPES = [
   { value: 'part_time', label: 'Bán thời gian' },
@@ -36,6 +39,10 @@ export default function JobWizardPage() {
   const [step, setStep] = useState(1);
   const storeSearch = useStoreSearch();
   const [stepError, setStepError] = useState<string | null>(null);
+  const [storeSelectionMode, setStoreSelectionMode] = useState<StoreSelectionMode>('manual');
+  const [regionCity, setRegionCity] = useState('');
+  const [regionDistrict, setRegionDistrict] = useState('');
+  const [regionStoreCount, setRegionStoreCount] = useState<number | null>(null);
   const [state, setState] = useState<WizardState>({
     storeIds: [],
     title: '',
@@ -53,6 +60,52 @@ export default function JobWizardPage() {
       ...s,
       storeIds: s.storeIds.includes(id) ? s.storeIds.filter((x) => x !== id) : [...s.storeIds, id],
     }));
+  }
+
+  function selectStoreSelectionMode(mode: StoreSelectionMode) {
+    setStoreSelectionMode(mode);
+    setRegionCity('');
+    setRegionDistrict('');
+    setRegionStoreCount(null);
+    setState((s) => ({ ...s, storeIds: [] }));
+  }
+
+  async function fetchAllStoreIdsForRegion(city: string, district: string): Promise<string[]> {
+    const ids: string[] = [];
+    let page = 1;
+    let total = Infinity;
+    while (ids.length < total) {
+      const params = new URLSearchParams();
+      params.set('city', city);
+      params.set('district', district);
+      params.set('page', String(page));
+      const res = await fetch(`/api/merchant/stores?${params.toString()}`);
+      const body = await res.json();
+      ids.push(...body.items.map((store: { id: string }) => store.id));
+      total = body.total;
+      if (!body.items || body.items.length === 0) break;
+      page += 1;
+    }
+    return ids;
+  }
+
+  function selectRegionCity(city: string) {
+    setRegionCity(city);
+    setRegionDistrict('');
+    setRegionStoreCount(null);
+    setState((s) => ({ ...s, storeIds: [] }));
+  }
+
+  async function selectRegionDistrict(district: string) {
+    setRegionDistrict(district);
+    if (!regionCity || !district) {
+      setRegionStoreCount(null);
+      setState((s) => ({ ...s, storeIds: [] }));
+      return;
+    }
+    const ids = await fetchAllStoreIdsForRegion(regionCity, district);
+    setRegionStoreCount(ids.length);
+    setState((s) => ({ ...s, storeIds: ids }));
   }
 
   function goToStep2() {
@@ -150,36 +203,121 @@ export default function JobWizardPage() {
         {stepper}
         <div className={card}>
           <h1 className="text-lg font-bold mb-4">Chọn địa điểm làm việc</h1>
-          <StoreFilterBar
-            keyword={storeSearch.keyword}
-            onKeywordChange={storeSearch.setKeyword}
-            city={storeSearch.city}
-            onCityChange={storeSearch.setCity}
-            district={storeSearch.district}
-            onDistrictChange={storeSearch.setDistrict}
-          />
-          <div className="flex flex-col gap-2 mb-4">
-            {storeSearch.items.map((store) => (
-              <label
-                key={store.id}
-                htmlFor={store.id}
-                className="flex items-center gap-2 border border-border rounded-md px-4 py-3 cursor-pointer hover:border-primary"
-              >
-                <input
-                  id={store.id}
-                  type="checkbox"
-                  checked={state.storeIds.includes(store.id)}
-                  onChange={() => toggleStore(store.id)}
-                />
-                {store.name}
-              </label>
-            ))}
-          </div>
-          {storeSearch.hasMore && (
-            <button onClick={storeSearch.loadMore} className="text-primary text-sm hover:underline mb-4">
-              Xem thêm
-            </button>
+
+          <fieldset className="flex gap-2 mb-4">
+            <legend className="text-xs font-semibold uppercase tracking-wide mb-1">Hình thức chọn</legend>
+            <label
+              htmlFor="storeSelectionMode-manual"
+              className={`px-4 py-2 rounded-pill border text-sm cursor-pointer ${
+                storeSelectionMode === 'manual'
+                  ? 'bg-primary-surface border-primary text-primary font-semibold'
+                  : 'border-border text-text-secondary'
+              }`}
+            >
+              <input
+                id="storeSelectionMode-manual"
+                type="radio"
+                name="storeSelectionMode"
+                className="sr-only"
+                checked={storeSelectionMode === 'manual'}
+                onChange={() => selectStoreSelectionMode('manual')}
+              />
+              Lựa chọn địa điểm làm việc
+            </label>
+            <label
+              htmlFor="storeSelectionMode-region"
+              className={`px-4 py-2 rounded-pill border text-sm cursor-pointer ${
+                storeSelectionMode === 'region'
+                  ? 'bg-primary-surface border-primary text-primary font-semibold'
+                  : 'border-border text-text-secondary'
+              }`}
+            >
+              <input
+                id="storeSelectionMode-region"
+                type="radio"
+                name="storeSelectionMode"
+                className="sr-only"
+                checked={storeSelectionMode === 'region'}
+                onChange={() => selectStoreSelectionMode('region')}
+              />
+              Lựa chọn khu vực
+            </label>
+          </fieldset>
+
+          {storeSelectionMode === 'manual' && (
+            <>
+              <StoreFilterBar
+                keyword={storeSearch.keyword}
+                onKeywordChange={storeSearch.setKeyword}
+                city={storeSearch.city}
+                onCityChange={storeSearch.setCity}
+                district={storeSearch.district}
+                onDistrictChange={storeSearch.setDistrict}
+              />
+              <div className="flex flex-col gap-2 mb-4">
+                {storeSearch.items.map((store) => (
+                  <label
+                    key={store.id}
+                    htmlFor={store.id}
+                    className="flex items-center gap-2 border border-border rounded-md px-4 py-3 cursor-pointer hover:border-primary"
+                  >
+                    <input
+                      id={store.id}
+                      type="checkbox"
+                      checked={state.storeIds.includes(store.id)}
+                      onChange={() => toggleStore(store.id)}
+                    />
+                    {store.name}
+                  </label>
+                ))}
+              </div>
+              {storeSearch.hasMore && (
+                <button onClick={storeSearch.loadMore} className="text-primary text-sm hover:underline mb-4">
+                  Xem thêm
+                </button>
+              )}
+            </>
           )}
+
+          {storeSelectionMode === 'region' && (
+            <div className="flex flex-col gap-4 mb-4">
+              <div className="flex gap-2">
+                <label className="flex flex-col gap-1 text-xs font-medium">
+                  Tỉnh/Thành Phố
+                  <select
+                    value={regionCity}
+                    onChange={(e) => selectRegionCity(e.target.value)}
+                    className="border border-border rounded-md px-2 py-2 text-sm"
+                  >
+                    <option value="">Chọn tỉnh/thành phố</option>
+                    {Object.keys(VIETNAM_PROVINCES).map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium">
+                  Quận/Huyện
+                  <select
+                    value={regionDistrict}
+                    onChange={(e) => selectRegionDistrict(e.target.value)}
+                    disabled={!regionCity}
+                    className="border border-border rounded-md px-2 py-2 text-sm"
+                  >
+                    <option value="">Chọn quận/huyện</option>
+                    {(VIETNAM_PROVINCES[regionCity] ?? []).map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              {regionStoreCount !== null && (
+                <p className="text-sm text-text-secondary">
+                  Đã chọn {regionStoreCount} cửa hàng tại {regionDistrict}, {regionCity}
+                </p>
+              )}
+            </div>
+          )}
+
           {stepError && <p className="text-status-off-text text-sm mb-4">{stepError}</p>}
           <button onClick={goToStep2} className={primaryButton}>
             Tiếp theo

@@ -117,6 +117,122 @@ describe('JobWizardPage', () => {
     expect(screen.getByText('Thỏa thuận')).toBeInTheDocument();
   });
 
+  it('shows the manual mode UI by default with both selection-mode radios', async () => {
+    render(<JobWizardPage />);
+    await waitFor(() => {
+      expect(screen.getByLabelText('Lựa chọn địa điểm làm việc')).toBeInTheDocument();
+      expect(screen.getByLabelText('Lựa chọn khu vực')).toBeInTheDocument();
+    });
+    expect((screen.getByLabelText('Lựa chọn địa điểm làm việc') as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByLabelText('Trụ Sở Chính')).toBeInTheDocument();
+  });
+
+  it('switching to "Lựa chọn khu vực" hides the manual checkbox list and shows Tỉnh/Quận selects', async () => {
+    render(<JobWizardPage />);
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+
+    fireEvent.click(screen.getByLabelText('Lựa chọn khu vực'));
+
+    expect(screen.queryByLabelText('Trụ Sở Chính')).not.toBeInTheDocument();
+    expect(screen.getByText('Tỉnh/Thành Phố')).toBeInTheDocument();
+    expect(screen.getByText('Quận/Huyện')).toBeInTheDocument();
+  });
+
+  it('selecting a Tỉnh + Quận in region mode bulk-selects all matching stores into storeIds', async () => {
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.startsWith('/api/merchant/stores')) {
+        const parsed = new URL(url, 'http://localhost');
+        if (parsed.searchParams.get('city') === 'Hà Nội' && parsed.searchParams.get('district') === 'Cầu Giấy') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              items: [
+                { id: 'r1', name: 'Cửa hàng Cầu Giấy 1' },
+                { id: 'r2', name: 'Cửa hàng Cầu Giấy 2' },
+              ],
+              total: 2,
+            }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
+        });
+      }
+      if (url === '/api/jobs') {
+        return Promise.resolve({ ok: true, json: async () => ({ id: 'jp1' }) });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+
+    render(<JobWizardPage />);
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+
+    fireEvent.click(screen.getByLabelText('Lựa chọn khu vực'));
+    fireEvent.change(screen.getByLabelText('Tỉnh/Thành Phố'), { target: { value: 'Hà Nội' } });
+    fireEvent.change(screen.getByLabelText('Quận/Huyện'), { target: { value: 'Cầu Giấy' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Đã chọn 2 cửa hàng tại Cầu Giấy, Hà Nội')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
+
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên khu vực' } });
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByText('Tiếp theo'));
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng tin' }));
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith('/merchant/jobs');
+    });
+
+    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/jobs');
+    expect(jobsCall).toBeTruthy();
+    const body = JSON.parse(jobsCall[1].body);
+    expect(body.storeIds).toEqual(['r1', 'r2']);
+  });
+
+  it('switching back to manual mode clears the region-derived storeIds selection', async () => {
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.startsWith('/api/merchant/stores')) {
+        const parsed = new URL(url, 'http://localhost');
+        if (parsed.searchParams.get('city') === 'Hà Nội' && parsed.searchParams.get('district') === 'Cầu Giấy') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ items: [{ id: 'r1', name: 'Cửa hàng Cầu Giấy 1' }], total: 1 }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+
+    render(<JobWizardPage />);
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+
+    fireEvent.click(screen.getByLabelText('Lựa chọn khu vực'));
+    fireEvent.change(screen.getByLabelText('Tỉnh/Thành Phố'), { target: { value: 'Hà Nội' } });
+    fireEvent.change(screen.getByLabelText('Quận/Huyện'), { target: { value: 'Cầu Giấy' } });
+    await waitFor(() => {
+      expect(screen.getByText('Đã chọn 1 cửa hàng tại Cầu Giấy, Hà Nội')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByLabelText('Lựa chọn địa điểm làm việc'));
+
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+    expect((screen.getByLabelText('Trụ Sở Chính') as HTMLInputElement).checked).toBe(false);
+
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    expect(screen.getByText('Vui lòng chọn ít nhất 1 cửa hàng')).toBeInTheDocument();
+  });
+
   it('sends salaryMin, salaryMax and salaryType in the publish payload', async () => {
     await goToStep2();
     fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
