@@ -53,6 +53,12 @@
   --color-worker-hot: #FF3B30;
   --color-worker-danger: #F45963;
   --color-worker-success: #34C759;
+  --color-worker-warning-bg: #FFF4E0;
+  --color-worker-warning-text: #B25E00;
+  --color-worker-info-bg: #E8F0FE;
+  --color-worker-info-text: #1A56DB;
+  --color-worker-success-bg: #E3F9E9;
+  --color-worker-error-bg: #FDE8E8;
 
   --radius-worker-md: 12px;
   --radius-worker-pill: 999px;
