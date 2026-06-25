@@ -1,7 +1,22 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { getSession } from '@/lib/auth/getSession';
-import { pauseJobPost, reactivateJobPost, softDeleteJobPost } from '@/lib/services/jobPostService';
+import { getJobPostById, pauseJobPost, reactivateJobPost, softDeleteJobPost } from '@/lib/services/jobPostService';
+
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session || session.role !== 'merchant') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const jobPost = await getJobPostById(id, session.merchantId!);
+  if (!jobPost) {
+    return NextResponse.json({ error: 'Job post not found' }, { status: 404 });
+  }
+
+  return NextResponse.json(jobPost);
+}
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();

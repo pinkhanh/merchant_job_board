@@ -92,6 +92,13 @@ export async function listJobPosts(merchantId: string, filters: JobPostFilters =
   return { items, total };
 }
 
+export async function getJobPostById(id: string, merchantId: string) {
+  return prisma.jobPost.findFirst({
+    where: { id, merchantId },
+    include: { jobPostStores: { include: { store: true } } },
+  });
+}
+
 export async function pauseJobPost(jobPostId: string, merchantId: string) {
   return prisma.jobPost.update({ where: { id: jobPostId, merchantId }, data: { status: 'paused' } });
 }
