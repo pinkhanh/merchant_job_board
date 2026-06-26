@@ -45,6 +45,7 @@ describe('admin merchant accounts API', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveLength(1);
+    expect(body[0]).not.toHaveProperty('passwordHash');
   });
 
   // POST /accounts
