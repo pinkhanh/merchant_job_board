@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStoreSearch } from '@/lib/hooks/useStoreSearch';
 import { StoreFilterBar } from '@/components/StoreFilterBar';
@@ -11,6 +11,7 @@ import { useToast } from '@/components/Toast';
 type WizardState = {
   storeIds: string[];
   title: string;
+  position: string;
   industry: string;
   employmentType: 'part_time' | 'shift' | 'seasonal' | 'full_time';
   salaryMin: string;
@@ -47,9 +48,12 @@ export default function JobWizardPage() {
   const [regionDistrict, setRegionDistrict] = useState('');
   const [regionStoreCount, setRegionStoreCount] = useState<number | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [jobCategories, setJobCategories] = useState<string[]>([]);
   const [state, setState] = useState<WizardState>({
     storeIds: [],
     title: '',
+    position: '',
     industry: 'F&B',
     employmentType: 'part_time',
     salaryMin: '',
@@ -58,6 +62,17 @@ export default function JobWizardPage() {
     deadline: '',
     description: '',
   });
+
+  useEffect(() => {
+    fetch('/api/merchant/profile')
+      .then((res) => res.json())
+      .then((profile) => {
+        if (Array.isArray(profile.jobCategories)) {
+          setJobCategories(profile.jobCategories);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   function toggleStore(id: string) {
     setState((s) => ({
@@ -119,6 +134,15 @@ export default function JobWizardPage() {
     }
     setStepError(null);
     setStep(2);
+  }
+
+  function goToStep3() {
+    if (!state.title.trim()) {
+      setStepError('Vui lòng nhập Tên vị trí tuyển dụng');
+      return;
+    }
+    setStepError(null);
+    generateDescription();
   }
 
   async function generateDescription() {
@@ -372,7 +396,7 @@ export default function JobWizardPage() {
 
           <div className="flex flex-col gap-1">
             <label htmlFor="title" className="text-xs font-semibold uppercase tracking-wide">
-              Tên vị trí tuyển dụng
+              Tên vị trí tuyển dụng <span className="text-status-off-text">*</span>
             </label>
             <input
               id="title"
@@ -382,8 +406,29 @@ export default function JobWizardPage() {
             />
           </div>
 
+          {jobCategories.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <label htmlFor="position" className="text-xs font-semibold uppercase tracking-wide">
+                Vị trí công việc
+              </label>
+              <select
+                id="position"
+                value={state.position}
+                onChange={(e) => setState((s) => ({ ...s, position: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">-- Chọn vị trí --</option>
+                {jobCategories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <fieldset>
-            <legend className="text-xs font-semibold uppercase tracking-wide mb-2">Loại hình làm việc</legend>
+            <legend className="text-xs font-semibold uppercase tracking-wide mb-2">
+              Loại hình làm việc <span className="text-status-off-text">*</span>
+            </legend>
             <div className="flex flex-wrap gap-2">
               {EMPLOYMENT_TYPES.map((t) => (
                 <label
@@ -478,7 +523,8 @@ export default function JobWizardPage() {
             </div>
           </fieldset>
 
-          {ctaRow('Tạo mô tả với AI', generateDescription, aiLoading)}
+          {stepError && <p className="text-status-off-text text-sm">{stepError}</p>}
+          {ctaRow('Tạo mô tả với AI', goToStep3, aiLoading)}
         </div>
       </div>
     );
@@ -490,19 +536,31 @@ export default function JobWizardPage() {
         {stepper}
         <div className={`${card} flex flex-col gap-4`}>
           <div>
-            <h1 className="text-lg font-bold">Mô tả công việc (AI đề xuất)</h1>
-            <div className="mt-2 p-3 bg-status-info-bg rounded-md border border-status-info-text/20 text-xs text-status-info-text flex gap-2">
-              <SparklesIcon className="w-4 h-4 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold mb-1">Prompt AI đang dùng:</p>
-                <p className="leading-relaxed">
-                  <em>System:</em> Bạn là trợ lý viết mô tả công việc part-time/shift cho ngành F&B/Retail tại Việt Nam. Trả lời bằng JSON với 3 khoá: roleOverview, requirements, benefits.
-                </p>
-                <p className="mt-1">
-                  <em>Input:</em> vị trí <strong>{state.title || '(chưa nhập)'}</strong>, ngành <strong>{state.industry}</strong>, loại hình <strong>{state.employmentType}</strong>
-                </p>
-              </div>
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-bold">Mô tả công việc (AI đề xuất)</h1>
+              <button
+                type="button"
+                onClick={() => setShowPrompt((v) => !v)}
+                className="text-xs text-text-secondary hover:text-primary flex items-center gap-1"
+              >
+                <SparklesIcon className="w-3.5 h-3.5" />
+                {showPrompt ? 'Ẩn prompt' : 'Xem prompt AI'}
+              </button>
             </div>
+            {showPrompt && (
+              <div className="mt-2 p-3 bg-status-info-bg rounded-md border border-status-info-text/20 text-xs text-status-info-text flex gap-2">
+                <SparklesIcon className="w-4 h-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold mb-1">Prompt AI đang dùng:</p>
+                  <p className="leading-relaxed">
+                    <em>System:</em> Bạn là trợ lý viết mô tả công việc part-time/shift cho ngành F&B/Retail tại Việt Nam. Trả lời bằng JSON với 3 khoá: roleOverview, requirements, benefits.
+                  </p>
+                  <p className="mt-1">
+                    <em>Input:</em> vị trí <strong>{state.title || '(chưa nhập)'}</strong>, ngành <strong>{state.industry}</strong>, loại hình <strong>{state.employmentType}</strong>
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           <textarea
             value={state.description}
@@ -516,21 +574,48 @@ export default function JobWizardPage() {
     );
   }
 
+  const reviewRow = (label: string, value: React.ReactNode) => (
+    <div className="flex gap-3 text-sm">
+      <span className="text-text-secondary w-40 shrink-0">{label}</span>
+      <span className="font-medium flex-1">{value}</span>
+    </div>
+  );
+
+  const salaryDisplay = () => {
+    const type = SALARY_TYPES.find((t) => t.value === state.salaryType)?.label ?? '';
+    if (state.salaryType === 'negotiable') return `Thỏa thuận`;
+    if (state.salaryMin && state.salaryMax)
+      return `${Number(state.salaryMin).toLocaleString('vi-VN')} – ${Number(state.salaryMax).toLocaleString('vi-VN')} đ / ${type}`;
+    if (state.salaryMin)
+      return `Từ ${Number(state.salaryMin).toLocaleString('vi-VN')} đ / ${type}`;
+    if (state.salaryMax)
+      return `Đến ${Number(state.salaryMax).toLocaleString('vi-VN')} đ / ${type}`;
+    return `${type}`;
+  };
+
   return (
     <div>
       {stepper}
       <div className={`${card} flex flex-col gap-4`}>
         <h1 className="text-lg font-bold">Xem lại & Đăng tin</h1>
-        <div className="bg-primary-surface rounded-md p-4 space-y-2">
-          <p className="font-semibold">{state.title || '(Chưa có tiêu đề)'}</p>
-          <p className="text-sm text-text-secondary">
-            {EMPLOYMENT_TYPES.find((t) => t.value === state.employmentType)?.label} ·{' '}
-            {state.storeIds.length} cửa hàng
-          </p>
-          {state.description && (
-            <p className="text-sm text-text-secondary whitespace-pre-line line-clamp-5">{state.description}</p>
-          )}
+
+        <div className="bg-primary-surface rounded-md p-4 flex flex-col gap-3">
+          <p className="font-semibold text-base">{state.title || '(Chưa có tiêu đề)'}</p>
+          <div className="h-px bg-border" />
+          {reviewRow('Vị trí công việc', state.position || '—')}
+          {reviewRow('Loại hình làm việc', EMPLOYMENT_TYPES.find((t) => t.value === state.employmentType)?.label ?? '—')}
+          {reviewRow('Số cửa hàng', `${state.storeIds.length} cửa hàng`)}
+          {reviewRow('Hạn nộp hồ sơ', state.deadline || '—')}
+          {reviewRow('Mức lương', salaryDisplay())}
         </div>
+
+        {state.description && (
+          <div className="flex flex-col gap-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Mô tả công việc</p>
+            <p className="text-sm whitespace-pre-line border border-border rounded-md p-3">{state.description}</p>
+          </div>
+        )}
+
         {ctaRow('Đăng tin', publish)}
       </div>
     </div>
