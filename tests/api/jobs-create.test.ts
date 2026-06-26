@@ -69,11 +69,12 @@ describe('GET /api/jobs', () => {
       storeId: undefined,
       industry: undefined,
       page: 2,
+      all: false,
     });
     expect(body).toEqual({ items: [{ id: 'jp1' }], total: 12 });
   });
 
-  it('defaults to page 1 when no page query param is given', async () => {
+  it('returns all items (no pagination) when no page query param is given', async () => {
     vi.mocked(getSession).mockResolvedValue({ userId: 'u1', role: 'merchant', merchantId: 'm1' });
     vi.mocked(listJobPosts).mockResolvedValue({ items: [], total: 0 } as any);
 
@@ -85,6 +86,7 @@ describe('GET /api/jobs', () => {
       storeId: undefined,
       industry: undefined,
       page: 1,
+      all: true,
     });
   });
 });

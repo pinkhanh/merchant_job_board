@@ -16,6 +16,7 @@ describe('GET /api/admin/applications', () => {
       {
         id: 'app1',
         applicantName: 'A',
+        maskedPhone: '09••••••21',
         importStatus: 'new',
         appliedAt: new Date(),
         jobPost: { title: 'x', merchant: { brandName: 'Merchant X' } },

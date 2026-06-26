@@ -4,14 +4,29 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ApplicantsPage from '@/app/merchant/applicants/page';
 
 function application(id: string, name: string) {
-  return { id, applicantName: name, importStatus: 'new' as const, jobPost: { title: 'Nhân viên pha chế' } };
+  return {
+    id,
+    applicantName: name,
+    phoneNumber: '0987654321',
+    importStatus: 'new' as const,
+    jobPost: { title: 'Nhân viên pha chế' },
+  };
 }
 
 describe('ApplicantsPage', () => {
   beforeEach(() => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ items: [application('app1', 'Nguyễn Văn A')], total: 18 }),
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url === '/api/jobs') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ items: [{ id: 'jp1', title: 'Nhân viên pha chế' }], total: 1 }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ items: [application('app1', 'Nguyễn Văn A')], total: 18 }),
+        blob: async () => new Blob(['csv']),
+      });
     }) as any;
   });
 

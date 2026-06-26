@@ -32,6 +32,7 @@ describe('adminApplicationService', () => {
       {
         id: 'app1',
         applicantName: 'Nguyen Van A',
+        phoneNumber: '0987654321',
         importStatus: 'new',
         appliedAt: new Date('2026-01-01T00:00:00Z'),
         jobPost: { title: 'Thu ngân', merchant: { brandName: 'Cửa hàng ABC' } },
@@ -118,6 +119,7 @@ describe('adminApplicationService', () => {
     (prisma.application.findMany as any).mockResolvedValue([
       {
         applicantName: 'Nguyễn Văn A',
+        phoneNumber: '0987654321',
         importStatus: 'new',
         appliedAt: new Date('2026-01-01T00:00:00Z'),
         jobPost: { title: 'Nhân viên pha chế', merchant: { brandName: 'Cửa hàng ABC' } },

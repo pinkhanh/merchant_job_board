@@ -7,9 +7,16 @@ import { PAGE_SIZE } from '@/lib/constants/pagination';
 type Application = {
   id: string;
   applicantName: string;
-  importStatus: 'new' | 'imported';
+  phoneNumber: string;
   jobPost: { title: string };
 };
+
+type JobOption = { id: string; title: string };
+
+function maskPhone(phone: string): string {
+  if (phone.length < 8) return phone;
+  return phone.slice(0, 2) + '••••••' + phone.slice(8);
+}
 
 function buildQuery(params: Record<string, string>) {
   const searchParams = new URLSearchParams();
@@ -24,34 +31,32 @@ export default function ApplicantsPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [revealed, setRevealed] = useState<Record<string, string>>({});
+  const [jobOptions, setJobOptions] = useState<JobOption[]>([]);
 
-  const [jobPostTitle, setJobPostTitle] = useState('');
+  const [jobPostId, setJobPostId] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
 
   useEffect(() => {
-    const query = buildQuery({ page: String(page), jobPostTitle, appliedFrom, appliedTo });
+    fetch('/api/jobs')
+      .then((res) => res.json())
+      .then((body) => setJobOptions(body.items ?? []));
+  }, []);
+
+  useEffect(() => {
+    const query = buildQuery({ page: String(page), jobPostId, appliedFrom, appliedTo });
     fetch(`/api/applications?${query}`)
       .then((res) => res.json())
       .then((body) => {
         setApplications(body.items);
         setTotal(body.total);
       });
-  }, [page, jobPostTitle, appliedFrom, appliedTo]);
+  }, [page, jobPostId, appliedFrom, appliedTo]);
 
   async function handleReveal(id: string) {
     const res = await fetch(`/api/applications/${id}/reveal-phone`, { method: 'POST' });
     const body = await res.json();
     setRevealed((r) => ({ ...r, [id]: body.phoneNumber }));
-  }
-
-  async function handleStatusChange(id: string, importStatus: 'new' | 'imported') {
-    await fetch(`/api/applications/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ importStatus }),
-    });
-    setApplications((apps) => apps.map((a) => (a.id === id ? { ...a, importStatus } : a)));
   }
 
   function handleFilterChange(setter: (value: string) => void) {
@@ -62,7 +67,7 @@ export default function ApplicantsPage() {
   }
 
   async function handleExport() {
-    const query = buildQuery({ jobPostTitle, appliedFrom, appliedTo });
+    const query = buildQuery({ jobPostId, appliedFrom, appliedTo });
     const res = await fetch(`/api/applications/export?${query}`);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -79,12 +84,18 @@ export default function ApplicantsPage() {
       <div className="flex gap-2 mb-4 items-end">
         <label className="flex flex-col gap-1 text-xs font-medium flex-1">
           Tên vị trí
-          <input
-            value={jobPostTitle}
-            onChange={(e) => handleFilterChange(setJobPostTitle)(e.target.value)}
-            placeholder="Tìm theo tên vị trí"
+          <select
+            value={jobPostId}
+            onChange={(e) => handleFilterChange(setJobPostId)(e.target.value)}
             className="border border-border rounded-md px-3 py-2 text-sm"
-          />
+          >
+            <option value="">Tất cả vị trí</option>
+            {jobOptions.map((j) => (
+              <option key={j.id} value={j.id}>
+                {j.title}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="flex flex-col gap-1 text-xs font-medium">
           Từ ngày
@@ -116,8 +127,7 @@ export default function ApplicantsPage() {
           <tr className="bg-primary text-white text-xs uppercase">
             <th className="px-4 py-3 text-left">Tên</th>
             <th className="px-4 py-3 text-left">SĐT</th>
-            <th className="px-4 py-3 text-left">Job</th>
-            <th className="px-4 py-3 text-left">Trạng thái</th>
+            <th className="px-4 py-3 text-left">Vị trí</th>
           </tr>
         </thead>
         <tbody>
@@ -125,7 +135,9 @@ export default function ApplicantsPage() {
             <tr key={app.id} className="border-b border-border hover:bg-primary-surface">
               <td className="px-4 py-3">{app.applicantName}</td>
               <td className="px-4 py-3">
-                <span className="text-text-secondary">{revealed[app.id] ?? '09x••••89'}</span>
+                <span className="text-text-secondary">
+                  {revealed[app.id] ?? maskPhone(app.phoneNumber)}
+                </span>
                 {!revealed[app.id] && (
                   <button onClick={() => handleReveal(app.id)} className="ml-2 text-primary text-sm hover:underline">
                     Hiện SĐT
@@ -133,18 +145,6 @@ export default function ApplicantsPage() {
                 )}
               </td>
               <td className="px-4 py-3">{app.jobPost.title}</td>
-              <td className="px-4 py-3">
-                <button
-                  onClick={() => handleStatusChange(app.id, app.importStatus === 'new' ? 'imported' : 'new')}
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${
-                    app.importStatus === 'new'
-                      ? 'bg-status-info-bg text-status-info-text'
-                      : 'bg-status-active-bg text-status-active-text'
-                  }`}
-                >
-                  {app.importStatus === 'new' ? 'Mới' : 'Đã nhập'}
-                </button>
-              </td>
             </tr>
           ))}
         </tbody>

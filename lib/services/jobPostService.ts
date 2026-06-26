@@ -66,9 +66,11 @@ export type JobPostFilters = {
   storeId?: string;
   industry?: string;
   page?: number;
+  all?: boolean;
 };
 
 export async function listJobPosts(merchantId: string, filters: JobPostFilters = {}) {
+  const paginate = filters.all !== true;
   const page = filters.page ?? 1;
   const where = {
     merchantId,
@@ -83,8 +85,7 @@ export async function listJobPosts(merchantId: string, filters: JobPostFilters =
       where,
       include: { jobPostStores: { include: { store: true } }, applications: true },
       orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      ...(paginate ? { skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE } : {}),
     }),
     prisma.jobPost.count({ where }),
   ]);

@@ -12,6 +12,7 @@ export type AdminApplicationFilters = {
 type SafeApplication = {
   id: string;
   applicantName: string;
+  maskedPhone: string;
   importStatus: string;
   appliedAt: Date;
   jobPost: { title: string; merchant: { brandName: string } };
@@ -46,6 +47,7 @@ export async function listAllApplications(filters: AdminApplicationFilters = {})
   return applications.map((a) => ({
     id: a.id,
     applicantName: a.applicantName,
+    maskedPhone: a.phoneNumber.slice(0, 2) + '••••••' + a.phoneNumber.slice(8),
     importStatus: a.importStatus,
     appliedAt: a.appliedAt,
     jobPost: a.jobPost,
