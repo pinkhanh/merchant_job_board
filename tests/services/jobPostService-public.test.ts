@@ -65,4 +65,10 @@ describe('jobPostService.listPublicJobPosts', () => {
     expect(result.counts.minSalary).toHaveLength(SALARY_BRACKETS.length);
     expect(result.counts.minSalary[0]).toEqual({ threshold: SALARY_BRACKETS[0], count: 0 });
   });
+
+  it('only returns jobs from active merchants', async () => {
+    await listPublicJobPosts();
+    const where = (prisma.jobPost.findMany as any).mock.calls[0][0].where;
+    expect(where.merchant).toEqual({ status: 'active' });
+  });
 });

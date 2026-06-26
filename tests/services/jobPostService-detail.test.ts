@@ -12,7 +12,7 @@ describe('jobPostService.getPublicJobPostById', () => {
     (prisma.jobPost.findFirst as any).mockResolvedValue(null);
     expect(await getPublicJobPostById('jp1')).toBeNull();
     expect(prisma.jobPost.findFirst).toHaveBeenCalledWith({
-      where: { id: 'jp1', status: 'live', deletedAt: null },
+      where: { id: 'jp1', status: 'live', deletedAt: null, merchant: { status: 'active' } },
       include: { merchant: true, jobPostStores: { include: { store: true } } },
     });
   });

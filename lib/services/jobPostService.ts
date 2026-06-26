@@ -149,7 +149,7 @@ function todayStart(): Date {
 }
 
 function liveVisibleWhere() {
-  return { status: 'live' as const, deletedAt: null, deadline: { gte: todayStart() } };
+  return { status: 'live' as const, deletedAt: null, deadline: { gte: todayStart() }, merchant: { status: 'active' as const } };
 }
 
 function salaryThresholdWhere(threshold?: number) {
@@ -265,7 +265,7 @@ export async function listPublicJobPosts(filters: PublicJobFilters = {}) {
 
 export async function getPublicJobPostById(id: string) {
   const jobPost = await prisma.jobPost.findFirst({
-    where: { id, status: 'live', deletedAt: null },
+    where: { id, status: 'live', deletedAt: null, merchant: { status: 'active' } },
     include: { merchant: true, jobPostStores: { include: { store: true } } },
   });
   if (!jobPost) return null;
