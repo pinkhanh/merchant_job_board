@@ -128,7 +128,7 @@ export async function updateMerchantAccount(
 }
 
 export async function deleteMerchantAccount(merchantId: string, userId: string) {
-  const count = await prisma.user.count({ where: { merchantId } });
+  const count = await prisma.user.count({ where: { merchantId, role: 'merchant' } });
   if (count <= 1) throw new LastAccountError();
 
   const user = await prisma.user.findFirst({ where: { id: userId, merchantId } });

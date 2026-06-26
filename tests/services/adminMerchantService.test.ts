@@ -227,6 +227,7 @@ describe('adminMerchantService', () => {
     (prisma.user.count as any).mockResolvedValue(1);
 
     await expect(deleteMerchantAccount('m1', 'u1')).rejects.toBeInstanceOf(LastAccountError);
+    expect(prisma.user.count).toHaveBeenCalledWith({ where: { merchantId: 'm1', role: 'merchant' } });
     expect(prisma.user.delete).not.toHaveBeenCalled();
   });
 
