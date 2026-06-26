@@ -1,6 +1,7 @@
 // tests/app/jobs-new-page.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '@/tests/test-utils';
 
 const pushMock = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }));
@@ -20,26 +21,33 @@ describe('JobWizardPage', () => {
       if (url === '/api/jobs') {
         return Promise.resolve({ ok: true, json: async () => ({ id: 'jp1' }) });
       }
+      // AI description endpoint
+      if (url.includes('/api/ai/generate-description')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ roleOverview: 'Mô tả', requirements: 'Yêu cầu', benefits: 'Quyền lợi' }),
+        });
+      }
       return Promise.resolve({ ok: true, json: async () => ({}) });
     }) as any;
   });
 
   it('loads stores into Step 1', async () => {
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => {
       expect(screen.getByLabelText('Trụ Sở Chính')).toBeInTheDocument();
     });
   });
 
   it('does not allow submitting Step 1 with no store selected', async () => {
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
     fireEvent.click(screen.getByText('Tiếp theo'));
     expect(screen.getByText('Vui lòng chọn ít nhất 1 cửa hàng')).toBeInTheDocument();
   });
 
   it('shows the store search/filter bar', async () => {
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => {
       expect(screen.getByLabelText('Tìm kiếm')).toBeInTheDocument();
       expect(screen.getByLabelText('Tỉnh/Thành Phố')).toBeInTheDocument();
@@ -57,22 +65,28 @@ describe('JobWizardPage', () => {
       return Promise.resolve({ ok: true, json: async () => ({}) });
     });
 
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => {
       expect(screen.getByText('Xem thêm')).toBeInTheDocument();
     });
   });
 
   async function goToStep2() {
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
     fireEvent.click(screen.getByLabelText('Trụ Sở Chính'));
     fireEvent.click(screen.getByText('Tiếp theo'));
     await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
   }
 
+  async function goToStep3() {
+    await goToStep2();
+    fireEvent.click(screen.getByText('Tạo mô tả với AI'));
+    await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
+  }
+
   it('does not show a Back button on Step 1', async () => {
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
     expect(screen.queryByText('Quay lại')).not.toBeInTheDocument();
   });
@@ -88,7 +102,7 @@ describe('JobWizardPage', () => {
   it('navigates Step 2 -> Step 3 -> back to Step 2 preserving entered title', async () => {
     await goToStep2();
     fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
-    fireEvent.click(screen.getByText('Tiếp theo'));
+    fireEvent.click(screen.getByText('Tạo mô tả với AI'));
     await waitFor(() => screen.getByText('Quay lại'));
 
     fireEvent.click(screen.getByText('Quay lại'));
@@ -97,9 +111,7 @@ describe('JobWizardPage', () => {
   });
 
   it('shows a Back button on Step 4 that returns to Step 3', async () => {
-    await goToStep2();
-    fireEvent.click(screen.getByText('Tiếp theo'));
-    await waitFor(() => screen.getByText('Tiếp theo'));
+    await goToStep3();
     fireEvent.click(screen.getByText('Tiếp theo'));
     await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
 
@@ -112,13 +124,13 @@ describe('JobWizardPage', () => {
     expect(screen.getByLabelText('Lương tối thiểu')).toBeInTheDocument();
     expect(screen.getByLabelText('Lương tối đa')).toBeInTheDocument();
     expect(screen.getByText('Theo giờ')).toBeInTheDocument();
-    expect(screen.getAllByText('Theo ca').length).toBeGreaterThanOrEqual(2); // shared with employmentType pills
+    expect(screen.getAllByText('Theo ca').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Theo tháng')).toBeInTheDocument();
     expect(screen.getByText('Thỏa thuận')).toBeInTheDocument();
   });
 
   it('shows the manual mode UI by default with both selection-mode radios', async () => {
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => {
       expect(screen.getByLabelText('Lựa chọn địa điểm làm việc')).toBeInTheDocument();
       expect(screen.getByLabelText('Lựa chọn khu vực')).toBeInTheDocument();
@@ -128,7 +140,7 @@ describe('JobWizardPage', () => {
   });
 
   it('switching to "Lựa chọn khu vực" hides the manual checkbox list and shows Tỉnh/Quận selects', async () => {
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
 
     fireEvent.click(screen.getByLabelText('Lựa chọn khu vực'));
@@ -162,10 +174,16 @@ describe('JobWizardPage', () => {
       if (url === '/api/jobs') {
         return Promise.resolve({ ok: true, json: async () => ({ id: 'jp1' }) });
       }
+      if (url.includes('/api/ai/generate-description')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ roleOverview: 'Mô tả', requirements: 'Yêu cầu', benefits: 'Quyền lợi' }),
+        });
+      }
       return Promise.resolve({ ok: true, json: async () => ({}) });
     });
 
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
 
     fireEvent.click(screen.getByLabelText('Lựa chọn khu vực'));
@@ -180,8 +198,8 @@ describe('JobWizardPage', () => {
     await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
 
     fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên khu vực' } });
-    fireEvent.click(screen.getByText('Tiếp theo'));
-    await waitFor(() => screen.getByText('Tiếp theo'));
+    fireEvent.click(screen.getByText('Tạo mô tả với AI'));
+    await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
     fireEvent.click(screen.getByText('Tiếp theo'));
     await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
     fireEvent.click(screen.getByRole('button', { name: 'Đăng tin' }));
@@ -214,7 +232,7 @@ describe('JobWizardPage', () => {
       return Promise.resolve({ ok: true, json: async () => ({}) });
     });
 
-    render(<JobWizardPage />);
+    renderWithProviders(<JobWizardPage />);
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
 
     fireEvent.click(screen.getByLabelText('Lựa chọn khu vực'));
@@ -240,8 +258,8 @@ describe('JobWizardPage', () => {
     fireEvent.change(screen.getByLabelText('Lương tối đa'), { target: { value: '8000000' } });
     fireEvent.click(screen.getByText('Theo tháng'));
 
-    fireEvent.click(screen.getByText('Tiếp theo'));
-    await waitFor(() => screen.getByText('Tiếp theo'));
+    fireEvent.click(screen.getByText('Tạo mô tả với AI'));
+    await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
     fireEvent.click(screen.getByText('Tiếp theo'));
     await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
 

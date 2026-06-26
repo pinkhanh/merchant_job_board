@@ -1,6 +1,7 @@
 // tests/app/merchant-jobs-page.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '@/tests/test-utils';
 
 import ManageJobPostsPage from '@/app/merchant/jobs/page';
 
@@ -17,7 +18,7 @@ describe('ManageJobPostsPage', () => {
   });
 
   it('fetches page 1 on initial render and renders the items', async () => {
-    render(<ManageJobPostsPage />);
+    renderWithProviders(<ManageJobPostsPage />);
     await waitFor(() => {
       expect(screen.getByText('Nhân viên pha chế')).toBeInTheDocument();
     });
@@ -25,7 +26,7 @@ describe('ManageJobPostsPage', () => {
   });
 
   it('links the job title to its detail page', async () => {
-    render(<ManageJobPostsPage />);
+    renderWithProviders(<ManageJobPostsPage />);
     await waitFor(() => screen.getByText('Nhân viên pha chế'));
     expect(screen.getByRole('link', { name: 'Nhân viên pha chế' })).toHaveAttribute(
       'href',
@@ -34,14 +35,14 @@ describe('ManageJobPostsPage', () => {
   });
 
   it('shows the pagination footer with the total count', async () => {
-    render(<ManageJobPostsPage />);
+    renderWithProviders(<ManageJobPostsPage />);
     await waitFor(() => {
       expect(screen.getByText('Hiển thị 10 trên 25 tin')).toBeInTheDocument();
     });
   });
 
   it('refetches with the new page when a page button is clicked', async () => {
-    render(<ManageJobPostsPage />);
+    renderWithProviders(<ManageJobPostsPage />);
     await waitFor(() => screen.getByText('Nhân viên pha chế'));
 
     fireEvent.click(screen.getByRole('button', { name: '2' }));
@@ -60,7 +61,7 @@ describe('ManageJobPostsPage', () => {
       }),
     }) as any;
 
-    render(<ManageJobPostsPage />);
+    renderWithProviders(<ManageJobPostsPage />);
 
     await waitFor(() => {
       expect(screen.getByText('Tạm dừng')).toBeInTheDocument();

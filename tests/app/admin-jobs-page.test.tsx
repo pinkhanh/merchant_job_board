@@ -1,6 +1,7 @@
 // tests/app/admin-jobs-page.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '@/tests/test-utils';
 
 import AdminJobsPage from '@/app/admin/jobs/page';
 
@@ -17,7 +18,7 @@ describe('AdminJobsPage', () => {
   });
 
   it('fetches job posts on initial render and renders the merchant column', async () => {
-    render(<AdminJobsPage />);
+    renderWithProviders(<AdminJobsPage />);
     await waitFor(() => {
       expect(screen.getByText('Nhân viên pha chế')).toBeInTheDocument();
     });
@@ -31,7 +32,7 @@ describe('AdminJobsPage', () => {
       json: async () => [jobPost('jp2', 'Nhân viên kho', 'expired', 'Cửa hàng ABC')],
     }) as any;
 
-    render(<AdminJobsPage />);
+    renderWithProviders(<AdminJobsPage />);
 
     await waitFor(() => {
       expect(screen.getByText('Hết hạn')).toBeInTheDocument();

@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Pagination } from '@/components/Pagination';
 import { PAGE_SIZE } from '@/lib/constants/pagination';
+import { useToast } from '@/components/Toast';
 
 type JobPost = { id: string; title: string; status: string; deadline: string };
 
 export default function ManageJobPostsPage() {
+  const showToast = useToast();
   const [jobPosts, setJobPosts] = useState<JobPost[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -22,12 +24,32 @@ export default function ManageJobPostsPage() {
   }, [page]);
 
   async function handleAction(id: string, action: 'pause' | 'reactivate' | 'delete') {
-    await fetch(`/api/jobs/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
-    });
-    setJobPosts((posts) => posts.filter((p) => p.id !== id || action !== 'delete'));
+    const ACTION_LABELS: Record<string, string> = {
+      pause: 'Tạm dừng tin thành công',
+      reactivate: 'Kích hoạt tin thành công',
+      delete: 'Đã xoá tin tuyển dụng',
+    };
+    try {
+      const res = await fetch(`/api/jobs/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        showToast('success', ACTION_LABELS[action] ?? 'Thao tác thành công');
+        setJobPosts((posts) =>
+          action === 'delete'
+            ? posts.filter((p) => p.id !== id)
+            : posts.map((p) =>
+                p.id === id ? { ...p, status: action === 'pause' ? 'paused' : 'live' } : p
+              )
+        );
+      } else {
+        showToast('error', 'Thao tác thất bại, vui lòng thử lại');
+      }
+    } catch {
+      showToast('error', 'Thao tác thất bại, vui lòng thử lại');
+    }
   }
 
   const STATUS_BADGE: Record<string, string> = {

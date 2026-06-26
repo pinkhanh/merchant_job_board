@@ -100,7 +100,11 @@ describe('storeService.listStores', () => {
 
     await listStores('m1', { city: 'Hà Nội', district: 'Cầu Giấy' });
 
-    const expectedWhere = { merchantId: 'm1', city: 'Hà Nội', district: 'Cầu Giấy' };
+    const expectedWhere = {
+      merchantId: 'm1',
+      city: { equals: 'Hà Nội', mode: 'insensitive' },
+      district: { equals: 'Cầu Giấy', mode: 'insensitive' },
+    };
     expect(prisma.store.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
   });
 
@@ -112,7 +116,11 @@ describe('storeService.listStores', () => {
     const result = await listStores('m1', { keyword: 'au co', city: 'Hà Nội', district: 'Cầu Giấy' });
 
     expect(prisma.store.findMany).toHaveBeenCalledWith({
-      where: { merchantId: 'm1', city: 'Hà Nội', district: 'Cầu Giấy' },
+      where: {
+        merchantId: 'm1',
+        city: { equals: 'Hà Nội', mode: 'insensitive' },
+        district: { equals: 'Cầu Giấy', mode: 'insensitive' },
+      },
       orderBy: { name: 'asc' },
     });
     expect(result.items).toHaveLength(1);

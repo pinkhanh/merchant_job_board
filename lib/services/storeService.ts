@@ -30,8 +30,8 @@ export async function listStores(merchantId: string, filters: StoreFilters = {})
   const page = filters.page ?? 1;
   const where = {
     merchantId,
-    ...(filters.city ? { city: filters.city } : {}),
-    ...(filters.district ? { district: filters.district } : {}),
+    ...(filters.city ? { city: { equals: filters.city, mode: 'insensitive' as const } } : {}),
+    ...(filters.district ? { district: { equals: filters.district, mode: 'insensitive' as const } } : {}),
   };
 
   if (!filters.keyword) {

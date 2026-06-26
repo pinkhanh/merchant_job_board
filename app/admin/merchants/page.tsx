@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useToast } from '@/components/Toast';
 
 type Merchant = {
   id: string;
@@ -11,6 +12,7 @@ type Merchant = {
 };
 
 export default function AdminMerchantsPage() {
+  const showToast = useToast();
   const [merchants, setMerchants] = useState<Merchant[]>([]);
 
   useEffect(() => {
@@ -21,12 +23,21 @@ export default function AdminMerchantsPage() {
 
   async function toggleStatus(id: string, current: 'active' | 'inactive') {
     const next = current === 'active' ? 'inactive' : 'active';
-    await fetch(`/api/admin/merchants/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: next }),
-    });
-    setMerchants((list) => list.map((m) => (m.id === id ? { ...m, status: next } : m)));
+    try {
+      const res = await fetch(`/api/admin/merchants/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: next }),
+      });
+      if (res.ok) {
+        showToast('success', next === 'active' ? 'Đã kích hoạt merchant' : 'Đã tạm ngưng merchant');
+        setMerchants((list) => list.map((m) => (m.id === id ? { ...m, status: next } : m)));
+      } else {
+        showToast('error', 'Cập nhật thất bại, vui lòng thử lại');
+      }
+    } catch {
+      showToast('error', 'Cập nhật thất bại, vui lòng thử lại');
+    }
   }
 
   return (

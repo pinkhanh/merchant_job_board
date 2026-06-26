@@ -1,6 +1,7 @@
 import { Shell } from '@/components/Shell';
 
 const ADMIN_NAV = [
+  { href: '/admin', label: 'Tổng quan' },
   { href: '/admin/merchants', label: 'Merchant' },
   { href: '/admin/jobs', label: 'Tin tuyển dụng' },
   { href: '/admin/applicants', label: 'Ứng viên' },

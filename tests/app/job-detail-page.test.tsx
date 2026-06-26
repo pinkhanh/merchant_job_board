@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ToastProvider } from '@/components/Toast';
 
-vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'jp1' }) }));
+vi.mock('next/navigation', () => ({
+  useParams: () => ({ id: 'jp1' }),
+  useRouter: () => ({ back: vi.fn() }),
+}));
 
 import JobDetailPage from '@/app/jobs/[id]/page';
 
@@ -12,14 +16,21 @@ const liveJob = {
   employmentType: 'shift',
   salaryMin: 20000,
   salaryMax: 30000,
+  salaryType: 'hourly',
   schedule: { days: ['mon'], start: '08:00', end: '17:00' },
   requirements: 'Nhanh nhẹn',
   benefits: ['Đồng phục'],
   description: 'Pha chế đồ uống tại quầy.',
   isClosed: false,
+  deadline: '2026-12-31',
+  experienceRequired: null,
   merchant: { brandName: 'Katinat', logoUrl: null },
   jobPostStores: [{ store: { name: 'Katinat Q1', streetAddress: '12 Lê Lợi', ward: 'Bến Nghé', district: 'Quận 1', city: 'Hồ Chí Minh' } }],
 };
+
+function renderWithToast(ui: React.ReactElement) {
+  return render(<ToastProvider>{ui}</ToastProvider>);
+}
 
 describe('JobDetailPage', () => {
   beforeEach(() => {
@@ -27,7 +38,7 @@ describe('JobDetailPage', () => {
   });
 
   it('renders job details fetched from the API', async () => {
-    render(<JobDetailPage />);
+    renderWithToast(<JobDetailPage />);
     await waitFor(() => {
       expect(screen.getByText('Nhân viên pha chế')).toBeInTheDocument();
       expect(screen.getByText('Pha chế đồ uống tại quầy.')).toBeInTheDocument();
@@ -35,17 +46,17 @@ describe('JobDetailPage', () => {
   });
 
   it('opens the apply modal when "Ứng tuyển ngay" is clicked', async () => {
-    render(<JobDetailPage />);
+    renderWithToast(<JobDetailPage />);
     await waitFor(() => screen.getByText('Ứng tuyển ngay'));
     fireEvent.click(screen.getByText('Ứng tuyển ngay'));
-    expect(screen.getByText('Bạn đang ứng tuyển vào:')).toBeInTheDocument();
+    expect(screen.getByText('Ứng tuyển')).toBeInTheDocument();
   });
 
   it('disables the apply CTA and shows the closed badge when isClosed is true', async () => {
     (global.fetch as any).mockResolvedValue({ ok: true, json: async () => ({ ...liveJob, isClosed: true }) });
-    render(<JobDetailPage />);
+    renderWithToast(<JobDetailPage />);
     await waitFor(() => {
-      expect(screen.getByText('Đã hết hạn nộp')).toBeInTheDocument();
+      expect(screen.getByText('Hết hạn')).toBeInTheDocument();
       expect(screen.getByText('Ứng tuyển ngay')).toBeDisabled();
     });
   });
@@ -58,7 +69,7 @@ describe('JobDetailPage', () => {
         merchant: { brandName: 'Katinat', logoUrl: 'https://cdn.example.com/katinat-logo.png' },
       }),
     });
-    render(<JobDetailPage />);
+    renderWithToast(<JobDetailPage />);
     await waitFor(() => {
       const img = screen.getByRole('img', { name: 'Katinat' });
       expect(img).toHaveAttribute('src', 'https://cdn.example.com/katinat-logo.png');
@@ -66,7 +77,7 @@ describe('JobDetailPage', () => {
   });
 
   it('falls back to the placeholder circle when logoUrl is null', async () => {
-    render(<JobDetailPage />);
+    renderWithToast(<JobDetailPage />);
     await waitFor(() => {
       expect(screen.getByText('Nhân viên pha chế')).toBeInTheDocument();
     });

@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useToast } from '@/components/Toast';
 
 type JobPost = { id: string; title: string; status: string; merchant: { brandName: string } };
 
 export default function AdminJobsPage() {
+  const showToast = useToast();
   const [jobPosts, setJobPosts] = useState<JobPost[]>([]);
   const [reasonDraft, setReasonDraft] = useState<Record<string, string>>({});
 
@@ -16,14 +18,25 @@ export default function AdminJobsPage() {
 
   async function handlePause(id: string) {
     const reason = reasonDraft[id];
-    if (!reason) return;
-
-    await fetch(`/api/admin/jobs/${id}/moderate`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'pause', reason }),
-    });
-    setJobPosts((posts) => posts.map((p) => (p.id === id ? { ...p, status: 'paused' } : p)));
+    if (!reason) {
+      showToast('error', 'Vui lòng nhập lý do tạm dừng');
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/jobs/${id}/moderate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'pause', reason }),
+      });
+      if (res.ok) {
+        showToast('success', 'Đã tạm dừng tin tuyển dụng');
+        setJobPosts((posts) => posts.map((p) => (p.id === id ? { ...p, status: 'paused' } : p)));
+      } else {
+        showToast('error', 'Tạm dừng thất bại, vui lòng thử lại');
+      }
+    } catch {
+      showToast('error', 'Tạm dừng thất bại, vui lòng thử lại');
+    }
   }
 
   const STATUS_BADGE: Record<string, string> = {

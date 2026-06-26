@@ -24,6 +24,7 @@ enum EmploymentType {
   part_time
   shift
   seasonal
+  full_time
 
   @@map("employment_type")
 }

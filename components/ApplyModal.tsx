@@ -4,12 +4,13 @@ import { useState, type FormEvent } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Notification } from '@/components/worker/ui/Notification';
 import { Callout } from '@/components/worker/ui/Callout';
+import { Avatar } from '@/components/worker/ui/Avatar';
 
 type Job = {
   id: string;
   title: string;
-  merchant: { brandName: string };
-  jobPostStores: { store: { name: string } }[];
+  merchant: { brandName: string; logoUrl: string | null };
+  jobPostStores: { store: { name: string; streetAddress: string; district: string; city: string } }[];
 };
 
 export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
@@ -17,6 +18,8 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const store = job.jobPostStores[0]?.store;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -59,11 +62,20 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
               </button>
             </div>
 
-            <p className="text-xs text-worker-text-secondary mb-1">Bạn đang ứng tuyển vào:</p>
-            <div className="bg-worker-bg rounded-md p-3.5 mb-4">
-              <p className="font-bold">{job.title}</p>
-              <p className="text-sm text-worker-text-secondary">{job.merchant.brandName}</p>
-              <p className="text-sm text-worker-text-secondary">{job.jobPostStores[0]?.store.name}</p>
+            <div className="bg-worker-bg rounded-worker-md p-3.5 mb-4 flex items-center gap-3">
+              <Avatar
+                variant={job.merchant.logoUrl ? 'image' : 'person'}
+                src={job.merchant.logoUrl ?? undefined}
+                alt={job.merchant.brandName}
+                size={40}
+              />
+              <div className="min-w-0">
+                <p className="font-bold text-sm leading-snug">{job.title}</p>
+                <p className="text-xs text-worker-text-secondary truncate">
+                  {job.merchant.brandName}
+                  {store ? ` · ${store.streetAddress}, ${store.district}` : ''}
+                </p>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -72,6 +84,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="Nhập họ và tên"
                   required
                   className="border border-worker-border rounded-md px-3 py-2.5 text-sm"
                 />
@@ -83,6 +96,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Nhập số điện thoại"
                   required
                   className="border border-worker-border rounded-md px-3 py-2.5 text-sm"
                 />
@@ -91,7 +105,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
               {error && <Callout variant="error" message={error} />}
 
               <button type="submit" className="bg-worker-primary text-white rounded-worker-pill py-3 font-bold mt-1">
-                Xác nhận ứng tuyển
+                Xác nhận
               </button>
             </form>
           </>

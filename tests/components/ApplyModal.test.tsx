@@ -6,8 +6,8 @@ import { ApplyModal } from '@/components/ApplyModal';
 const job = {
   id: 'jp1',
   title: 'Nhân viên pha chế',
-  merchant: { brandName: 'Katinat' },
-  jobPostStores: [{ store: { name: 'Katinat Q1' } }],
+  merchant: { brandName: 'Katinat', logoUrl: null },
+  jobPostStores: [{ store: { name: 'Katinat Q1', streetAddress: '123 Nguyễn Huệ', district: 'Quận 1', city: 'TP. Hồ Chí Minh' } }],
 };
 
 describe('ApplyModal', () => {
@@ -18,7 +18,7 @@ describe('ApplyModal', () => {
   it('shows the job confirmation block', () => {
     render(<ApplyModal job={job} onClose={vi.fn()} />);
     expect(screen.getByText('Nhân viên pha chế')).toBeInTheDocument();
-    expect(screen.getByText('Katinat Q1')).toBeInTheDocument();
+    expect(screen.getByText(/Katinat/)).toBeInTheDocument();
   });
 
   it('shows the success state after a successful submit', async () => {
@@ -27,7 +27,7 @@ describe('ApplyModal', () => {
 
     fireEvent.change(screen.getByLabelText('Họ và tên *'), { target: { value: 'Nguyễn Văn A' } });
     fireEvent.change(screen.getByLabelText('Số điện thoại *'), { target: { value: '0987654321' } });
-    fireEvent.click(screen.getByText('Xác nhận ứng tuyển'));
+    fireEvent.click(screen.getByText('Xác nhận'));
 
     await waitFor(() => {
       expect(screen.getByText('Đã gửi hồ sơ!')).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('ApplyModal', () => {
 
     fireEvent.change(screen.getByLabelText('Họ và tên *'), { target: { value: 'Nguyễn Văn A' } });
     fireEvent.change(screen.getByLabelText('Số điện thoại *'), { target: { value: '0987654321' } });
-    fireEvent.click(screen.getByText('Xác nhận ứng tuyển'));
+    fireEvent.click(screen.getByText('Xác nhận'));
 
     await waitFor(() => {
       expect(screen.getByText('Bạn đã ứng tuyển vào vị trí này rồi.')).toBeInTheDocument();

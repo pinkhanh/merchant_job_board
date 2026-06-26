@@ -11,7 +11,7 @@ import { ShowMore } from '@/components/worker/ui/ShowMore';
 type JobPost = {
   id: string;
   title: string;
-  employmentType: 'part_time' | 'shift' | 'seasonal';
+  employmentType: 'part_time' | 'shift' | 'seasonal' | 'full_time';
   salaryMin: number | null;
   salaryMax: number | null;
   salaryType: string;
@@ -29,16 +29,32 @@ type Counts = {
 
 const EMPLOYMENT_TYPES = [
   { value: 'part_time', label: 'Bán thời gian' },
+  { value: 'full_time', label: 'Toàn thời gian' },
   { value: 'shift', label: 'Theo ca' },
   { value: 'seasonal', label: 'Thời vụ' },
 ] as const;
 
+const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {
+  part_time: 'Bán thời gian',
+  full_time: 'Toàn thời gian',
+  shift: 'Theo ca',
+  seasonal: 'Thời vụ',
+};
+
 const INDUSTRIES = ['F&B', 'Retail', 'Delivery', 'Customer Service', 'Other'];
 
-function formatSalary(min: number | null, max: number | null) {
+function formatSalary(min: number | null, max: number | null, salaryType: string) {
+  const suffix: Record<string, string> = {
+    hourly: '/giờ',
+    shift: '/ca',
+    monthly: '/tháng',
+    negotiable: '',
+  };
   if (!min && !max) return 'Thỏa thuận';
-  if (min && max) return `${min.toLocaleString('vi-VN')} - ${max.toLocaleString('vi-VN')}`;
-  return `${(min ?? max)!.toLocaleString('vi-VN')}`;
+  const s = suffix[salaryType] ?? '';
+  if (min && max)
+    return `${min.toLocaleString('vi-VN')} - ${max.toLocaleString('vi-VN')}đ${s}`;
+  return `${(min ?? max)!.toLocaleString('vi-VN')}đ${s}`;
 }
 
 export default function JobsPage() {
@@ -124,28 +140,31 @@ function JobsPageContent() {
 
   return (
     <div className="px-4 py-6 max-w-[1200px] mx-auto">
-      <h1 className="text-2xl font-extrabold mb-6 bg-gradient-to-r from-worker-primary to-worker-primary-light bg-clip-text text-transparent">
-        Tìm việc shift, part-time gần bạn
+      <h1 className="text-2xl font-extrabold mb-1 text-worker-primary">
+        Tìm việc làm cùng MoMo
       </h1>
+      <p className="text-sm text-worker-text-secondary mb-5">
+        Hàng loạt việc làm part-time tại các thương hiệu cùng MoMo
+      </p>
 
       {counts.merchant.length > 0 && (
-        <div className="flex gap-6 overflow-x-auto pb-4 mb-4">
+        <div className="flex gap-5 overflow-x-auto pb-3 mb-5">
           {counts.merchant.map((m) => (
-            <button key={m.id} onClick={() => setMerchantId(m.id === merchantId ? '' : m.id)} className="flex flex-col items-center gap-1 shrink-0">
-              <span className={m.id === merchantId ? 'rounded-full border-2 border-worker-primary' : ''}>
-                <Avatar variant={m.logoUrl ? 'image' : 'person'} src={m.logoUrl ?? undefined} alt={m.brandName} size={72} />
+            <button key={m.id} onClick={() => setMerchantId(m.id === merchantId ? '' : m.id)} className="flex flex-col items-center gap-1.5 shrink-0">
+              <span className={m.id === merchantId ? 'rounded-full ring-2 ring-worker-primary ring-offset-1' : ''}>
+                <Avatar variant={m.logoUrl ? 'image' : 'person'} src={m.logoUrl ?? undefined} alt={m.brandName} size={56} />
               </span>
-              <span className="text-xs text-worker-text-secondary">{m.brandName}</span>
+              <span className="text-xs text-worker-text-secondary max-w-[64px] text-center leading-tight">{m.brandName}</span>
             </button>
           ))}
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-3">
         {EMPLOYMENT_TYPES.map((t) => (
           <Chips
             key={t.value}
-            label={`${t.label} (${counts.employmentType[t.value] ?? 0})`}
+            label={`${t.label}${counts.employmentType[t.value] ? ` (${counts.employmentType[t.value]})` : ''}`}
             variant={employmentTypes.includes(t.value) ? 'outline' : 'secondary'}
             onClick={() => toggleEmploymentType(t.value)}
           />
@@ -164,7 +183,6 @@ function JobsPageContent() {
             })),
           ]}
         />
-
         <Select
           value={industry}
           onChange={setIndustry}
@@ -189,26 +207,33 @@ function JobsPageContent() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-3">
           {jobs.map((job) => {
             const store = job.jobPostStores[0]?.store;
             return (
               <a
                 key={job.id}
                 href={`/jobs/${job.id}`}
-                className="bg-white border-l-[3px] border-worker-primary rounded-worker-md shadow-worker-card p-5 flex gap-4"
+                className="bg-white rounded-worker-md shadow-worker-card p-4 flex gap-3 relative overflow-hidden"
               >
-                <Avatar variant={job.merchant.logoUrl ? 'image' : 'person'} src={job.merchant.logoUrl ?? undefined} alt={job.merchant.brandName} size={56} />
-                <div className="flex-1">
-                  <p className="text-sm text-worker-text-secondary">{job.merchant.brandName}</p>
-                  <p className="text-lg font-bold">{job.title}</p>
-                  <p className="text-worker-primary font-bold">{formatSalary(job.salaryMin, job.salaryMax)}</p>
+                <div className="shrink-0 mt-1">
+                  <Avatar variant={job.merchant.logoUrl ? 'image' : 'person'} src={job.merchant.logoUrl ?? undefined} alt={job.merchant.brandName} size={48} />
+                </div>
+                <div className="flex-1 min-w-0 pr-[80px]">
+                  <p className="text-xs text-worker-text-secondary mb-0.5">{job.merchant.brandName}</p>
+                  <p className="font-bold text-sm leading-snug mb-1">{job.title}</p>
+                  <p className="text-worker-primary font-bold text-sm mb-1">
+                    {formatSalary(job.salaryMin, job.salaryMax, job.salaryType)}
+                  </p>
                   {store && (
-                    <p className="text-sm text-worker-text-secondary">
+                    <p className="text-xs text-worker-text-secondary truncate">
                       {store.name} · {store.district}
                     </p>
                   )}
                 </div>
+                <span className="absolute top-3 right-3 bg-worker-accent text-worker-primary text-[11px] font-semibold px-2 py-0.5 rounded-worker-pill whitespace-nowrap">
+                  {EMPLOYMENT_TYPE_LABELS[job.employmentType] ?? job.employmentType}
+                </span>
               </a>
             );
           })}
@@ -217,7 +242,7 @@ function JobsPageContent() {
 
       {jobs.length < total && (
         <div className="text-center mt-6">
-          <ShowMore onClick={() => load(page + 1, true)} label="Tải thêm" />
+          <ShowMore onClick={() => load(page + 1, true)} label="Xem thêm" />
         </div>
       )}
     </div>
