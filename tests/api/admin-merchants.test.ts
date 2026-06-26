@@ -61,15 +61,44 @@ describe('admin merchants API', () => {
     expect(res.status).toBe(409);
   });
 
-  it('PATCH toggles merchant status', async () => {
+  it('PATCH updates merchant fields', async () => {
     vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
-    vi.mocked(adminMerchantService.setMerchantStatus).mockResolvedValue({} as any);
+    vi.mocked(adminMerchantService.updateMerchant).mockResolvedValue({} as any);
 
-    const req = new Request('http://localhost/api/admin/merchants/m1', { method: 'PATCH', body: JSON.stringify({ status: 'inactive' }) });
+    const req = new Request('http://localhost/api/admin/merchants/m1', {
+      method: 'PATCH',
+      body: JSON.stringify({ brandName: 'NewName', hotline: '0901234567' }),
+    });
     const res = await PATCH(req, { params: Promise.resolve({ id: 'm1' }) });
 
-    expect(adminMerchantService.setMerchantStatus).toHaveBeenCalledWith('m1', 'inactive');
+    expect(adminMerchantService.updateMerchant).toHaveBeenCalledWith('m1', { brandName: 'NewName', hotline: '0901234567' });
     expect(res.status).toBe(200);
+  });
+
+  it('PATCH toggles merchant status', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminMerchantService.updateMerchant).mockResolvedValue({} as any);
+
+    const req = new Request('http://localhost/api/admin/merchants/m1', {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'inactive' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'm1' }) });
+
+    expect(adminMerchantService.updateMerchant).toHaveBeenCalledWith('m1', { status: 'inactive' });
+    expect(res.status).toBe(200);
+  });
+
+  it('PATCH returns 400 on invalid input', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 'u2', role: 'admin', merchantId: null });
+    vi.mocked(adminMerchantService.updateMerchant).mockRejectedValue(new ZodError([]));
+
+    const req = new Request('http://localhost/api/admin/merchants/m1', {
+      method: 'PATCH',
+      body: JSON.stringify({ brandName: '' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'm1' }) });
+    expect(res.status).toBe(400);
   });
 
   it('GET /:id returns 401 for a non-admin session', async () => {

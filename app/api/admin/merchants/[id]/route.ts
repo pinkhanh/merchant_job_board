@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 import { getSession } from '@/lib/auth/getSession';
-import { getMerchantById, setMerchantStatus } from '@/lib/services/adminMerchantService';
+import { getMerchantById, updateMerchant } from '@/lib/services/adminMerchantService';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -23,7 +24,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const { id } = await params;
-  const { status } = await req.json();
-  await setMerchantStatus(id, status);
-  return NextResponse.json({ ok: true });
+  const body = await req.json();
+  try {
+    await updateMerchant(id, body);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    if (e instanceof ZodError) return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    throw e;
+  }
 }
