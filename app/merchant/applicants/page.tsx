@@ -13,6 +13,18 @@ type Application = {
 
 type JobOption = { id: string; title: string };
 
+type ExportLog = {
+  id: string;
+  fileName: string;
+  exportedAt: string;
+  applicantCount: number;
+};
+
+function formatExportDate(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 function maskPhone(phone: string): string {
   if (phone.length < 8) return phone;
   return phone.slice(0, 2) + '••••••' + phone.slice(8);
@@ -33,6 +45,8 @@ export default function ApplicantsPage() {
   const [revealed, setRevealed] = useState<Record<string, string>>({});
   const [jobOptions, setJobOptions] = useState<JobOption[]>([]);
 
+  const [exportLogs, setExportLogs] = useState<ExportLog[]>([]);
+
   const [jobPostId, setJobPostId] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
@@ -41,6 +55,13 @@ export default function ApplicantsPage() {
     fetch('/api/jobs')
       .then((res) => res.json())
       .then((body) => setJobOptions(body.items ?? []));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/applications/export-logs')
+      .then((r) => r.json())
+      .then(setExportLogs)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -149,6 +170,29 @@ export default function ApplicantsPage() {
           ))}
         </tbody>
       </table>
+      {exportLogs.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-bold mb-4">Lịch sử xuất CSV</h2>
+          <table className="w-full bg-white border border-border rounded-lg shadow-card overflow-hidden">
+            <thead>
+              <tr className="bg-primary text-white text-xs uppercase">
+                <th className="px-4 py-3 text-left">Tên file</th>
+                <th className="px-4 py-3 text-left">Ngày xuất</th>
+                <th className="px-4 py-3 text-left">Số ứng viên</th>
+              </tr>
+            </thead>
+            <tbody>
+              {exportLogs.map((log) => (
+                <tr key={log.id} className="border-b border-border hover:bg-primary-surface">
+                  <td className="px-4 py-3 text-sm font-medium">{log.fileName}</td>
+                  <td className="px-4 py-3 text-sm text-text-secondary">{formatExportDate(log.exportedAt)}</td>
+                  <td className="px-4 py-3 text-sm text-text-secondary">{log.applicantCount} ứng viên</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       <Pagination page={page} pageSize={PAGE_SIZE} total={total} itemLabel="ứng viên" onPageChange={setPage} />
     </div>
   );

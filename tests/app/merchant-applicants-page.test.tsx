@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '@/tests/test-utils';
 
 import ApplicantsPage from '@/app/merchant/applicants/page';
 
@@ -21,6 +22,9 @@ describe('ApplicantsPage', () => {
           ok: true,
           json: async () => ({ items: [{ id: 'jp1', title: 'Nhân viên pha chế' }], total: 1 }),
         });
+      }
+      if (url.includes('export-logs')) {
+        return Promise.resolve({ ok: true, json: async () => [] });
       }
       return Promise.resolve({
         ok: true,
@@ -53,6 +57,23 @@ describe('ApplicantsPage', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/applications?page=2');
+    });
+  });
+
+  it('shows CSV export history block', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('export-logs')) return Promise.resolve({
+        ok: true,
+        json: async () => [{ id: 'log1', fileName: 'ung-vien-2026-06-27.csv', exportedAt: '2026-06-27T10:00:00Z', applicantCount: 12 }],
+      });
+      return Promise.resolve({ ok: true, json: async () => ({ items: [], total: 0 }) });
+    }) as any;
+
+    renderWithProviders(<ApplicantsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Lịch sử xuất CSV')).toBeInTheDocument();
+      expect(screen.getByText('ung-vien-2026-06-27.csv')).toBeInTheDocument();
+      expect(screen.getByText('12 ứng viên')).toBeInTheDocument();
     });
   });
 });

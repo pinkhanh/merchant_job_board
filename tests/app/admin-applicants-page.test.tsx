@@ -29,6 +29,9 @@ describe('AdminApplicantsPage', () => {
           json: async () => [{ id: 'm1', brandName: 'Cửa hàng ABC' }],
         });
       }
+      if (url.includes('export-logs')) {
+        return Promise.resolve({ ok: true, json: async () => [] });
+      }
       return Promise.resolve({
         ok: true,
         json: async () => [application('app1', 'Nguyễn Văn A', 'Cửa hàng ABC')],
@@ -65,12 +68,32 @@ describe('AdminApplicantsPage', () => {
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes('/api/admin/jobs')) return Promise.resolve({ ok: true, json: async () => [] });
       if (url.includes('/api/admin/merchants')) return Promise.resolve({ ok: true, json: async () => [] });
+      if (url.includes('export-logs')) return Promise.resolve({ ok: true, json: async () => [] });
       return Promise.resolve({ ok: true, json: async () => [multiStoreApp] });
     }) as any;
 
     renderWithProviders(<AdminApplicantsPage />);
     await waitFor(() => {
       expect(screen.getByText('2 cửa hàng')).toBeInTheDocument();
+    });
+  });
+
+  it('shows CSV export history block', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('export-logs')) return Promise.resolve({
+        ok: true,
+        json: async () => [{ id: 'log1', fileName: 'ung-vien-2026-06-27.csv', exportedAt: '2026-06-27T10:00:00Z', applicantCount: 5 }],
+      });
+      if (url.includes('/api/admin/jobs')) return Promise.resolve({ ok: true, json: async () => [] });
+      if (url.includes('/api/admin/merchants')) return Promise.resolve({ ok: true, json: async () => [] });
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }) as any;
+
+    render(<AdminApplicantsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Lịch sử xuất CSV')).toBeInTheDocument();
+      expect(screen.getByText('ung-vien-2026-06-27.csv')).toBeInTheDocument();
+      expect(screen.getByText('5 ứng viên')).toBeInTheDocument();
     });
   });
 });
