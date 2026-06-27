@@ -8,7 +8,6 @@ const baseProps = {
   storeTotal: 0,
   readOnly: false,
   onSave: () => {},
-  onSync: () => {},
   onDescriptionChange: () => {},
   onHotlineChange: () => {},
   categoryInput: '',
