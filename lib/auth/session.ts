@@ -36,12 +36,13 @@ export async function createTempSessionToken(payload: TempSessionPayload): Promi
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('5m')
+    .setAudience('temp')
     .sign(secretKey());
 }
 
 export async function verifyTempSessionToken(token: string): Promise<TempSessionPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, secretKey());
+    const { payload } = await jwtVerify(token, secretKey(), { audience: 'temp' });
     return payload as unknown as TempSessionPayload;
   } catch {
     return null;

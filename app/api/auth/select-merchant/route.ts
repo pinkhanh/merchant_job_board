@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { merchantId } = await req.json();
+  if (!merchantId) return NextResponse.json({ error: 'merchantId required' }, { status: 400 });
 
   // Verify this user actually has access to the chosen merchant
   const assignment = await prisma.userMerchant.findUnique({

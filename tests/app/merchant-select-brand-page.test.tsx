@@ -14,6 +14,7 @@ describe('SelectBrandPage', () => {
 
   it('renders available brands fetched from /api/merchant/brands', async () => {
     (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
       json: async () => ({
         items: [
           { id: 'm1', brandName: 'Katinat', logoUrl: null },
@@ -30,6 +31,7 @@ describe('SelectBrandPage', () => {
 
   it('renders brand logo initial when logoUrl is null', async () => {
     (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
       json: async () => ({
         items: [{ id: 'm1', brandName: 'Katinat', logoUrl: null }],
       }),
@@ -43,11 +45,12 @@ describe('SelectBrandPage', () => {
   it('calls select-merchant and redirects to dashboard on brand click', async () => {
     (global.fetch as any)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           items: [{ id: 'm1', brandName: 'Katinat', logoUrl: null }],
         }),
       })
-      .mockResolvedValueOnce({ json: async () => ({ ok: true }) });
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
 
     render(<SelectBrandPage />);
 

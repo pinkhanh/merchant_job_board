@@ -10,16 +10,24 @@ export default function SelectBrandPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/merchant/brands').then(r => r.json()).then(data => setBrands(data.items ?? []));
+    fetch('/api/merchant/brands').then(r => {
+      if (!r.ok) { router.push('/login'); return; }
+      r.json().then(data => setBrands(data.items ?? []));
+    });
   }, []);
 
   async function selectBrand(merchantId: string) {
     setSelecting(merchantId);
-    await fetch('/api/auth/select-merchant', {
+    const res = await fetch('/api/auth/select-merchant', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ merchantId }),
     });
+    if (!res.ok) {
+      console.error('Failed to select brand:', res.status);
+      setSelecting(null);
+      return;
+    }
     router.push('/merchant/dashboard');
   }
 
