@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-type NavItem = { href: string; label: string };
+type NavItem = {
+  href: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+};
 
 export function Shell({ navItems, children }: { navItems: NavItem[]; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -53,12 +57,13 @@ export function Shell({ navItems, children }: { navItems: NavItem[]; children: R
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block px-5 py-3 text-sm border-l-[3px] ${
+                className={`flex items-center gap-3 px-5 py-3 text-sm border-l-[3px] ${
                   active
                     ? 'border-primary bg-primary-surface text-primary font-semibold'
                     : 'border-transparent text-text-secondary hover:bg-primary-surface hover:text-primary'
                 }`}
               >
+                {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
                 {item.label}
               </Link>
             );

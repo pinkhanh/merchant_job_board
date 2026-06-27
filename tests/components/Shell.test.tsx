@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { Squares2x2Icon } from '@heroicons/react/24/outline';
 
 const pushMock = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -50,6 +51,16 @@ describe('Shell', () => {
     );
 
     expect(screen.getByText('content').closest('main')).toHaveClass('text-text-secondary');
+  });
+
+  it('renders nav icon when provided', () => {
+    render(
+      <Shell navItems={[{ href: '/test', label: 'Test', icon: Squares2x2Icon }]}>
+        <div />
+      </Shell>
+    );
+    expect(screen.getByText('Test')).toBeInTheDocument();
+    expect(document.querySelector('svg')).not.toBeNull();
   });
 });
 
