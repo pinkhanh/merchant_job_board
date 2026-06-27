@@ -46,7 +46,7 @@ async function fetchApplications(filters: AdminApplicationFilters) {
         select: {
           title: true,
           merchant: { select: { brandName: true } },
-          jobPostStores: { include: { store: { select: { name: true } } } },
+          jobPostStores: { select: { store: { select: { name: true } } } },
         },
       },
     },
