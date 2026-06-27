@@ -10,6 +10,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const { id } = await params;
   const body = await req.json();
+  const VALID_STATUSES = ['live', 'paused'] as const;
+  if (!VALID_STATUSES.includes(body.status)) {
+    return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+  }
   const job = await prisma.jobPost.findFirst({
     where: { id, merchantId: session.merchantId },
   });

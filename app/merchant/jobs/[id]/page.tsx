@@ -87,6 +87,7 @@ export default function MerchantJobDetailPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) setJobStatus(newStatus);
+      else alert('Không thể cập nhật trạng thái. Vui lòng thử lại.');
     } finally {
       setIsPausing(false);
     }
@@ -98,6 +99,7 @@ export default function MerchantJobDetailPage() {
     try {
       const res = await fetch(`/api/merchant/jobs/${id}`, { method: 'DELETE' });
       if (res.ok) router.push('/merchant/jobs');
+      else alert('Không thể xóa tin. Vui lòng thử lại.');
     } finally {
       setIsDeleting(false);
     }
