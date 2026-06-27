@@ -7,7 +7,7 @@ import { VIETNAM_PROVINCES } from '@/lib/constants/vietnamProvinces';
 import { useToast } from '@/components/Toast';
 
 type Merchant = { id: string; brandName: string; logoUrl: string | null; status: string };
-type Store = { id: string; name: string; district: string; city: string };
+type Store = { id: string; name: string; streetAddress: string | null; ward: string | null; district: string; city: string };
 
 type WizardState = {
   merchantId: string;
@@ -292,11 +292,34 @@ export default function AdminJobsNewPage() {
               </p>
               <div className="flex flex-col gap-2 mb-4">
                 {stores.map((store) => (
-                  <label key={store.id} className={`flex items-center gap-2 border rounded-md px-4 py-3 cursor-pointer ${state.storeIds.includes(store.id) ? 'border-primary bg-primary-surface' : 'border-border hover:border-primary'}`}>
-                    <input type="checkbox" checked={state.storeIds.includes(store.id)} onChange={() => toggleStore(store.id)} />
-                    <span className="flex-1">{store.name}</span>
-                    <span className="text-xs text-text-secondary">{store.district}{store.city ? `, ${store.city}` : ''}</span>
-                  </label>
+                  <button
+                    key={store.id}
+                    type="button"
+                    onClick={() => toggleStore(store.id)}
+                    aria-label={store.name}
+                    aria-pressed={state.storeIds.includes(store.id)}
+                    className={`flex items-start gap-3 px-4 py-3 rounded-lg border text-left transition-colors ${
+                      state.storeIds.includes(store.id)
+                        ? 'border-primary bg-primary-surface'
+                        : 'border-border bg-white hover:border-primary/50'
+                    }`}
+                  >
+                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                      state.storeIds.includes(store.id) ? 'bg-primary border-primary' : 'border-border'
+                    }`}>
+                      {state.storeIds.includes(store.id) && (
+                        <CheckIcon className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{store.name}</p>
+                      <p className="text-xs text-text-secondary mt-0.5">
+                        {[store.streetAddress, store.ward, store.district, store.city]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </p>
+                    </div>
+                  </button>
                 ))}
               </div>
             </>

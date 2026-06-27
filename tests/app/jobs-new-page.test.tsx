@@ -245,7 +245,7 @@ describe('JobWizardPage', () => {
     fireEvent.click(screen.getByLabelText('Lựa chọn địa điểm làm việc'));
 
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
-    expect((screen.getByLabelText('Trụ Sở Chính') as HTMLInputElement).checked).toBe(false);
+    expect(screen.getByLabelText('Trụ Sở Chính')).toHaveAttribute('aria-pressed', 'false');
 
     fireEvent.click(screen.getByText('Tiếp theo'));
     expect(screen.getByText('Vui lòng chọn ít nhất 1 cửa hàng')).toBeInTheDocument();
@@ -286,5 +286,30 @@ describe('JobWizardPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/3 cửa hàng/)).toBeInTheDocument();
     });
+  });
+
+  it('shows full address on second line of store card', async () => {
+    global.fetch = vi.fn((url: string) => {
+      if (url.startsWith('/api/merchant/stores')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            items: [{
+              id: 's1',
+              name: 'Katinat Q1',
+              streetAddress: '1 Lê Lợi',
+              ward: 'Phường Bến Nghé',
+              district: 'Quận 1',
+              city: 'TP. Hồ Chí Minh',
+            }],
+            total: 1,
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    }) as any;
+    renderWithProviders(<JobWizardPage />);
+    await waitFor(() => screen.getByText('Katinat Q1'));
+    expect(screen.getByText('1 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh')).toBeInTheDocument();
   });
 });
