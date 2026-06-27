@@ -55,6 +55,9 @@ export async function createMerchant(rawInput: unknown) {
       },
       select: { id: true, username: true, role: true, merchantId: true, isActive: true, createdAt: true },
     });
+    await tx.userMerchant.create({
+      data: { userId: user.id, merchantId: merchant.id },
+    });
     return { merchant, user };
   });
 }
@@ -153,13 +156,25 @@ export async function deleteMerchantAccount(merchantId: string, userId: string) 
 export async function assignUserToMerchant(merchantId: string, username: string) {
   const user = await prisma.user.findFirst({ where: { username } });
   if (!user) throw new UserNotFoundError();
-  if (user.merchantId && user.merchantId !== merchantId) {
-    throw new UserAlreadyAssignedError('User is already assigned to another merchant');
-  }
 
-  return prisma.user.update({
+  // In a multi-brand system a user may belong to multiple merchants.
+  // Only reject if they are already assigned to THIS specific merchant.
+  const existing = await prisma.userMerchant.findUnique({
+    where: { userId_merchantId: { userId: user.id, merchantId } },
+  });
+  if (existing) throw new UserAlreadyAssignedError('User already assigned to this merchant');
+
+  const updated = await prisma.user.update({
     where: { id: user.id },
     data: { merchantId, role: 'merchant', isActive: true },
     select: ACCOUNT_SELECT,
   });
+
+  await prisma.userMerchant.upsert({
+    where: { userId_merchantId: { userId: user.id, merchantId } },
+    update: {},
+    create: { userId: user.id, merchantId },
+  });
+
+  return updated;
 }

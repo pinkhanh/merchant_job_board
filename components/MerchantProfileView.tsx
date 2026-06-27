@@ -74,11 +74,13 @@ export function MerchantProfileView({
   });
 
   const headquartersStoreId = storesByOldest[0]?.id;
-  const previewStores = storesByOldest.slice(0, PREVIEW_STORE_COUNT);
 
-  const visibleStores = previewStores.filter(s =>
+  // Filter across ALL stores first, then take the preview slice so that
+  // searching for a store beyond the first PREVIEW_STORE_COUNT still works.
+  const filteredStores = storesByOldest.filter(s =>
     s.name.toLowerCase().includes(storeSearch.toLowerCase())
   );
+  const visibleStores = filteredStores.slice(0, PREVIEW_STORE_COUNT);
 
   return (
     <div className="flex flex-col gap-4">
