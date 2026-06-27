@@ -114,6 +114,7 @@ model User {
 
   moderationLogs  JobPostModerationLog[]
   phoneRevealLogs PhoneRevealLog[]
+  csvExportLogs   CsvExportLog[]
 
   @@map("users")
 }
@@ -205,4 +206,16 @@ model PhoneRevealLog {
   revealedAt     DateTime    @default(now()) @map("revealed_at")
 
   @@map("phone_reveal_logs")
+}
+
+model CsvExportLog {
+  id             String   @id @default(uuid())
+  exportedBy     String   @map("exported_by")
+  exportedByUser User     @relation(fields: [exportedBy], references: [id])
+  applicantCount Int      @map("applicant_count")
+  fileName       String   @map("file_name")
+  filters        Json
+  exportedAt     DateTime @default(now()) @map("exported_at")
+
+  @@map("csv_export_logs")
 }
