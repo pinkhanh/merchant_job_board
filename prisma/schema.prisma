@@ -73,10 +73,11 @@ model Merchant {
   status        MerchantStatus @default(active)
   createdAt     DateTime       @default(now()) @map("created_at")
 
-  stores        Store[]
-  users         User[]
-  historicalJds HistoricalJd[]
-  jobPosts      JobPost[]
+  stores          Store[]
+  users           User[]
+  historicalJds   HistoricalJd[]
+  jobPosts        JobPost[]
+  userAssignments UserMerchant[] @relation("MerchantUsers")
 
   @@map("merchants")
 }
@@ -112,11 +113,23 @@ model User {
   isActive     Boolean   @default(true) @map("is_active")
   createdAt    DateTime  @default(now()) @map("created_at")
 
-  moderationLogs  JobPostModerationLog[]
-  phoneRevealLogs PhoneRevealLog[]
-  csvExportLogs   CsvExportLog[]
+  moderationLogs      JobPostModerationLog[]
+  phoneRevealLogs     PhoneRevealLog[]
+  csvExportLogs       CsvExportLog[]
+  merchantAssignments UserMerchant[] @relation("UserMerchants")
 
   @@map("users")
+}
+
+model UserMerchant {
+  userId     String   @map("user_id")
+  user       User     @relation("UserMerchants", fields: [userId], references: [id], onDelete: Cascade)
+  merchantId String   @map("merchant_id")
+  merchant   Merchant @relation("MerchantUsers", fields: [merchantId], references: [id], onDelete: Cascade)
+  grantedAt  DateTime @default(now()) @map("granted_at")
+
+  @@id([userId, merchantId])
+  @@map("user_merchants")
 }
 
 model HistoricalJd {

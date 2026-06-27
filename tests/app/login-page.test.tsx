@@ -60,6 +60,22 @@ describe('LoginPage', () => {
     });
   });
 
+  it('redirects to /merchant/select-brand for multi-brand users', async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, requiresBrandSelection: true }),
+    });
+
+    render(<LoginPage />);
+    fireEvent.change(screen.getByLabelText('Tên đăng nhập'), { target: { value: 'multi' } });
+    fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'pw' } });
+    fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith('/merchant/select-brand');
+    });
+  });
+
   it('applies the secondary text color to the form so default text inherits it', () => {
     render(<LoginPage />);
     expect(screen.getByText('Đăng nhập', { selector: 'h1' }).closest('form')).toHaveClass('text-text-secondary');
