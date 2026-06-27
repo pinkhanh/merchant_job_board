@@ -68,7 +68,7 @@ export default function AdminApplicantsPage() {
           <select
             value={merchantId}
             onChange={(e) => setMerchantId(e.target.value)}
-            className="border border-border rounded-md px-3 py-2 text-sm"
+            className="border border-border rounded-md px-3 py-2 text-sm bg-white"
           >
             <option value="">Tất cả thương hiệu</option>
             {merchantOptions.map((m) => (
@@ -83,7 +83,7 @@ export default function AdminApplicantsPage() {
           <select
             value={jobPostId}
             onChange={(e) => setJobPostId(e.target.value)}
-            className="border border-border rounded-md px-3 py-2 text-sm"
+            className="border border-border rounded-md px-3 py-2 text-sm bg-white"
           >
             <option value="">Tất cả vị trí</option>
             {jobOptions.map((j) => (
@@ -99,7 +99,7 @@ export default function AdminApplicantsPage() {
             type="date"
             value={appliedFrom}
             onChange={(e) => setAppliedFrom(e.target.value)}
-            className="border border-border rounded-md px-2 py-2 text-sm"
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
           />
         </label>
         <label className="flex flex-col gap-1 text-xs font-medium">
@@ -108,7 +108,7 @@ export default function AdminApplicantsPage() {
             type="date"
             value={appliedTo}
             onChange={(e) => setAppliedTo(e.target.value)}
-            className="border border-border rounded-md px-2 py-2 text-sm"
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
           />
         </label>
         <button

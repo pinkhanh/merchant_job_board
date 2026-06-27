@@ -84,7 +84,7 @@ export default function AdminJobsPage() {
                   placeholder="Lý do tạm dừng"
                   value={reasonDraft[post.id] ?? ''}
                   onChange={(e) => setReasonDraft((d) => ({ ...d, [post.id]: e.target.value }))}
-                  className="border border-border rounded-md px-3 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+                  className="border border-border rounded-md px-3 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10 bg-white"
                 />
                 <button
                   onClick={() => handlePause(post.id)}

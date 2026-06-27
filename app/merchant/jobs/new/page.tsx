@@ -355,7 +355,7 @@ export default function JobWizardPage() {
                   <select
                     value={regionCity}
                     onChange={(e) => selectRegionCity(e.target.value)}
-                    className="border border-border rounded-md px-2 py-2 text-sm"
+                    className="border border-border rounded-md px-2 py-2 text-sm bg-white"
                   >
                     <option value="">Chọn tỉnh/thành phố</option>
                     {Object.keys(VIETNAM_PROVINCES).map((c) => (
@@ -369,7 +369,7 @@ export default function JobWizardPage() {
                     value={regionDistrict}
                     onChange={(e) => selectRegionDistrict(e.target.value)}
                     disabled={!regionCity}
-                    className="border border-border rounded-md px-2 py-2 text-sm"
+                    className="border border-border rounded-md px-2 py-2 text-sm bg-white"
                   >
                     <option value="">Chọn quận/huyện</option>
                     {(VIETNAM_PROVINCES[regionCity] ?? []).map((d) => (

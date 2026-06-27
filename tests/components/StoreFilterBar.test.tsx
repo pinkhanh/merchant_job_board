@@ -73,4 +73,16 @@ describe('StoreFilterBar', () => {
     fireEvent.change(screen.getByLabelText('Quận/Huyện'), { target: { value: 'Cầu Giấy' } });
     expect(onDistrictChange).toHaveBeenCalledWith('Cầu Giấy');
   });
+
+  it('keyword input has white background class', () => {
+    render(
+      <StoreFilterBar
+        keyword="" onKeywordChange={vi.fn()}
+        city="" onCityChange={vi.fn()}
+        district="" onDistrictChange={vi.fn()}
+      />
+    );
+    const input = screen.getByPlaceholderText('Tên hoặc địa chỉ cửa hàng');
+    expect(input.className).toContain('bg-white');
+  });
 });

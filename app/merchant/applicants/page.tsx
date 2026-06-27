@@ -87,7 +87,7 @@ export default function ApplicantsPage() {
           <select
             value={jobPostId}
             onChange={(e) => handleFilterChange(setJobPostId)(e.target.value)}
-            className="border border-border rounded-md px-3 py-2 text-sm"
+            className="border border-border rounded-md px-3 py-2 text-sm bg-white"
           >
             <option value="">Tất cả vị trí</option>
             {jobOptions.map((j) => (
@@ -103,7 +103,7 @@ export default function ApplicantsPage() {
             type="date"
             value={appliedFrom}
             onChange={(e) => handleFilterChange(setAppliedFrom)(e.target.value)}
-            className="border border-border rounded-md px-2 py-2 text-sm"
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
           />
         </label>
         <label className="flex flex-col gap-1 text-xs font-medium">
@@ -112,7 +112,7 @@ export default function ApplicantsPage() {
             type="date"
             value={appliedTo}
             onChange={(e) => handleFilterChange(setAppliedTo)(e.target.value)}
-            className="border border-border rounded-md px-2 py-2 text-sm"
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
           />
         </label>
         <button

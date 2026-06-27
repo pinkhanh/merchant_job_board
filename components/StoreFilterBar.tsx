@@ -36,7 +36,7 @@ export function StoreFilterBar({
           value={keywordInput}
           onChange={(e) => setKeywordInput(e.target.value)}
           placeholder="Tên hoặc địa chỉ cửa hàng"
-          className="border border-border rounded-md px-3 py-2 text-sm"
+          className="border border-border rounded-md px-3 py-2 text-sm bg-white"
         />
       </label>
       <label className="flex flex-col gap-1 text-xs font-medium">
@@ -44,7 +44,7 @@ export function StoreFilterBar({
         <select
           value={city}
           onChange={(e) => onCityChange(e.target.value)}
-          className="border border-border rounded-md px-2 py-2 text-sm"
+          className="border border-border rounded-md px-2 py-2 text-sm bg-white"
         >
           <option value="">Tất cả</option>
           {Object.keys(VIETNAM_PROVINCES).map((c) => (
@@ -58,7 +58,7 @@ export function StoreFilterBar({
           value={district}
           onChange={(e) => onDistrictChange(e.target.value)}
           disabled={!city}
-          className="border border-border rounded-md px-2 py-2 text-sm"
+          className="border border-border rounded-md px-2 py-2 text-sm bg-white"
         >
           <option value="">Tất cả</option>
           {(VIETNAM_PROVINCES[city] ?? []).map((d) => (
