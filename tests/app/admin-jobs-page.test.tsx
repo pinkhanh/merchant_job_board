@@ -6,15 +6,29 @@ import { renderWithProviders } from '@/tests/test-utils';
 import AdminJobsPage from '@/app/admin/jobs/page';
 
 function jobPost(id: string, title: string, status: string, brandName: string) {
-  return { id, title, status, merchant: { brandName } };
+  return {
+    id,
+    title,
+    status,
+    deadline: new Date(Date.now() + 86400000 * 30).toISOString(),
+    employmentType: 'full_time',
+    merchant: { brandName },
+    jobPostStores: [{ store: { name: 'Store 1' } }],
+  };
+}
+
+function setupFetch(posts: ReturnType<typeof jobPost>[]) {
+  global.fetch = vi.fn().mockImplementation((url: string) => {
+    if (typeof url === 'string' && url.includes('/api/admin/merchants')) {
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }
+    return Promise.resolve({ ok: true, json: async () => posts });
+  }) as any;
 }
 
 describe('AdminJobsPage', () => {
   beforeEach(() => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => [jobPost('jp1', 'Nhân viên pha chế', 'live', 'Katinat')],
-    }) as any;
+    setupFetch([jobPost('jp1', 'Nhân viên pha chế', 'live', 'Katinat')]);
   });
 
   it('fetches job posts on initial render and renders the merchant column', async () => {
@@ -27,10 +41,7 @@ describe('AdminJobsPage', () => {
   });
 
   it('renders a Vietnamese status label instead of the raw status code', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => [jobPost('jp2', 'Nhân viên kho', 'expired', 'Cửa hàng ABC')],
-    }) as any;
+    setupFetch([jobPost('jp2', 'Nhân viên kho', 'expired', 'Cửa hàng ABC')]);
 
     renderWithProviders(<AdminJobsPage />);
 
