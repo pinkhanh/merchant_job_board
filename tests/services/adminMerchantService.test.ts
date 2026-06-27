@@ -41,6 +41,7 @@ import {
   UsernameConflictError,
   LastAccountError,
   UserNotFoundError,
+  UserAlreadyAssignedError,
 } from '@/lib/services/adminMerchantService';
 import { prisma } from '@/lib/db/prisma';
 
@@ -333,5 +334,10 @@ describe('adminMerchantService', () => {
   it('assignUserToMerchant throws UserNotFoundError when username does not exist', async () => {
     (prisma.user.findFirst as any).mockResolvedValue(null);
     await expect(assignUserToMerchant('m1', 'ghost')).rejects.toBeInstanceOf(UserNotFoundError);
+  });
+
+  it('assignUserToMerchant throws UserAlreadyAssignedError when user belongs to another merchant', async () => {
+    (prisma.user.findFirst as any).mockResolvedValue({ id: 'u99', username: 'taken', merchantId: 'm2' });
+    await expect(assignUserToMerchant('m1', 'taken')).rejects.toBeInstanceOf(UserAlreadyAssignedError);
   });
 });
