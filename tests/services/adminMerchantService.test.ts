@@ -37,8 +37,10 @@ import {
   createMerchantAccount,
   updateMerchantAccount,
   deleteMerchantAccount,
+  assignUserToMerchant,
   UsernameConflictError,
   LastAccountError,
+  UserNotFoundError,
 } from '@/lib/services/adminMerchantService';
 import { prisma } from '@/lib/db/prisma';
 
@@ -310,5 +312,26 @@ describe('adminMerchantService', () => {
     (prisma.user.findFirst as any).mockResolvedValue(null);
 
     await expect(deleteMerchantAccount('m1', 'u-other')).rejects.toThrow('Not found');
+  });
+
+  // ── assignUserToMerchant ─────────────────────────────────────────────────
+
+  it('assignUserToMerchant finds user by username and updates their merchant', async () => {
+    (prisma.user.findFirst as any).mockResolvedValue({ id: 'u99', username: 'existing_user', merchantId: null });
+    (prisma.user.update as any).mockResolvedValue({ id: 'u99', username: 'existing_user', isActive: true, createdAt: new Date() });
+
+    await assignUserToMerchant('m1', 'existing_user');
+
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'u99' },
+        data: expect.objectContaining({ merchantId: 'm1', role: 'merchant' }),
+      })
+    );
+  });
+
+  it('assignUserToMerchant throws UserNotFoundError when username does not exist', async () => {
+    (prisma.user.findFirst as any).mockResolvedValue(null);
+    await expect(assignUserToMerchant('m1', 'ghost')).rejects.toBeInstanceOf(UserNotFoundError);
   });
 });

@@ -100,6 +100,8 @@ export async function listMerchantAccounts(merchantId: string) {
 
 export class UsernameConflictError extends Error {}
 export class LastAccountError extends Error {}
+export class UserNotFoundError extends Error {}
+export class UserAlreadyAssignedError extends Error {}
 
 export const createMerchantAccountSchema = z.object({
   username: z.string().min(3),
@@ -146,4 +148,18 @@ export async function deleteMerchantAccount(merchantId: string, userId: string) 
   if (!user) throw new Error('Not found');
 
   await prisma.user.delete({ where: { id: userId } });
+}
+
+export async function assignUserToMerchant(merchantId: string, username: string) {
+  const user = await prisma.user.findFirst({ where: { username } });
+  if (!user) throw new UserNotFoundError();
+  if (user.merchantId && user.merchantId !== merchantId) {
+    throw new UserAlreadyAssignedError('User is already assigned to another merchant');
+  }
+
+  return prisma.user.update({
+    where: { id: user.id },
+    data: { merchantId, role: 'merchant', isActive: true },
+    select: ACCOUNT_SELECT,
+  });
 }
