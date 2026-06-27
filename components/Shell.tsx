@@ -3,11 +3,32 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import {
+  ChartBarIcon,
+  BuildingOffice2Icon,
+  NewspaperIcon,
+  UsersIcon,
+  Squares2X2Icon,
+  PlusCircleIcon,
+  QueueListIcon,
+  BuildingStorefrontIcon,
+} from '@heroicons/react/24/outline';
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  ChartBar: ChartBarIcon,
+  BuildingOffice2: BuildingOffice2Icon,
+  Newspaper: NewspaperIcon,
+  Users: UsersIcon,
+  Squares2X2: Squares2X2Icon,
+  PlusCircle: PlusCircleIcon,
+  QueueList: QueueListIcon,
+  BuildingStorefront: BuildingStorefrontIcon,
+};
 
 type NavItem = {
   href: string;
   label: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  iconName?: string;
 };
 
 type BrandInfo = { name: string; logoUrl?: string | null };
@@ -79,6 +100,7 @@ export function Shell({
         <nav className="pt-4 flex-1 overflow-y-auto">
           {navItems.map((item) => {
             const active = pathname === item.href;
+            const Icon = item.iconName ? ICON_MAP[item.iconName] : undefined;
             return (
               <Link
                 key={item.href}
@@ -89,7 +111,7 @@ export function Shell({
                     : 'border-transparent text-text-secondary hover:bg-primary-surface hover:text-primary'
                 }`}
               >
-                {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
+                {Icon && <Icon className="w-4 h-4 shrink-0" />}
                 {item.label}
               </Link>
             );

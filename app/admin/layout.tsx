@@ -1,16 +1,10 @@
 import { Shell } from '@/components/Shell';
-import {
-  ChartBarIcon,
-  BuildingOffice2Icon,
-  NewspaperIcon,
-  UsersIcon,
-} from '@heroicons/react/24/outline';
 
 const ADMIN_NAV = [
-  { href: '/admin', label: 'Tổng quan', icon: ChartBarIcon },
-  { href: '/admin/merchants', label: 'Merchant', icon: BuildingOffice2Icon },
-  { href: '/admin/jobs', label: 'Tin tuyển dụng', icon: NewspaperIcon },
-  { href: '/admin/applicants', label: 'Ứng viên', icon: UsersIcon },
+  { href: '/admin', label: 'Tổng quan', iconName: 'ChartBar' },
+  { href: '/admin/merchants', label: 'Merchant', iconName: 'BuildingOffice2' },
+  { href: '/admin/jobs', label: 'Tin tuyển dụng', iconName: 'Newspaper' },
+  { href: '/admin/applicants', label: 'Ứng viên', iconName: 'Users' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
