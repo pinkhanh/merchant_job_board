@@ -15,6 +15,7 @@ type SafeApplication = {
   id: string;
   applicantName: string;
   maskedPhone: string;
+  phoneNumber: string;
   importStatus: string;
   appliedAt: Date;
   jobPost: {
@@ -64,6 +65,7 @@ export async function listAllApplications(filters: AdminApplicationFilters = {})
     id: a.id,
     applicantName: a.applicantName,
     maskedPhone: a.phoneNumber.slice(0, 2) + '••••••' + a.phoneNumber.slice(8),
+    phoneNumber: a.phoneNumber,
     importStatus: a.importStatus,
     appliedAt: a.appliedAt,
     jobPost: a.jobPost,

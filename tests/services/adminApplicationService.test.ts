@@ -10,21 +10,26 @@ import { prisma } from '@/lib/db/prisma';
 describe('adminApplicationService', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('never includes phoneNumber even if Prisma returns it', async () => {
+  it('includes phoneNumber and maskedPhone in the returned shape', async () => {
     (prisma.application.findMany as any).mockResolvedValue([
       {
         id: 'app1',
         applicantName: 'Nguyen Van A',
         phoneNumber: '0987654321',
         importStatus: 'new',
+        appliedAt: new Date('2026-01-01T00:00:00Z'),
         jobPost: { title: 'Thu ngân', merchant: { brandName: 'Cửa hàng ABC' } },
       },
     ]);
 
     const result = await listAllApplications({});
 
-    expect(result[0]).not.toHaveProperty('phoneNumber');
-    expect(result[0]).toMatchObject({ id: 'app1', applicantName: 'Nguyen Van A' });
+    expect(result[0]).toMatchObject({
+      id: 'app1',
+      applicantName: 'Nguyen Van A',
+      phoneNumber: '0987654321',
+      maskedPhone: '09••••••21',
+    });
   });
 
   it('includes the merchant brandName via jobPost.merchant in both the query and the returned shape', async () => {

@@ -22,14 +22,16 @@ export function ApplicantDetailModal({ phone, onClose, isAdmin }: Props) {
     items: AppHistory[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const url = isAdmin
       ? `/api/admin/applications/by-phone?phone=${encodeURIComponent(phone)}`
       : `/api/applications/by-phone?phone=${encodeURIComponent(phone)}`;
     fetch(url)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json(); })
       .then(setData)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [phone, isAdmin]);
 
@@ -53,6 +55,9 @@ export function ApplicantDetailModal({ phone, onClose, isAdmin }: Props) {
         </div>
 
         <div className="overflow-auto max-h-80">
+          {!loading && error && (
+            <p className="px-6 py-4 text-sm text-red-500">Không tải được dữ liệu.</p>
+          )}
           {!loading && data && (
             <table className="w-full text-sm">
               <thead className="bg-primary-surface">
