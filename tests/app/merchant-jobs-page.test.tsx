@@ -5,8 +5,8 @@ import { renderWithProviders } from '@/tests/test-utils';
 
 import ManageJobPostsPage from '@/app/merchant/jobs/page';
 
-function jobPost(id: string, title: string) {
-  return { id, title, status: 'live', deadline: '2026-12-31' };
+function jobPost(id: string, title: string, stores: { store: { name: string } }[] = []) {
+  return { id, title, status: 'live', deadline: '2026-12-31', employmentType: 'shift', jobPostStores: stores };
 }
 
 describe('ManageJobPostsPage', () => {
@@ -56,7 +56,7 @@ describe('ManageJobPostsPage', () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        items: [{ id: 'jp2', title: 'Nhân viên kho', status: 'paused', deadline: '2026-12-31' }],
+        items: [{ ...jobPost('jp2', 'Nhân viên kho'), status: 'paused' }],
         total: 1,
       }),
     }) as any;
@@ -67,5 +67,42 @@ describe('ManageJobPostsPage', () => {
       expect(screen.getByText('Tạm dừng')).toBeInTheDocument();
     });
     expect(screen.queryByText('paused')).not.toBeInTheDocument();
+  });
+
+  it('shows single store name in Địa điểm column for single-store jobs', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [jobPost('jp3', 'Nhân viên pha chế', [{ store: { name: 'Katinat Q1' } }])],
+        total: 1,
+      }),
+    }) as any;
+
+    renderWithProviders(<ManageJobPostsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Katinat Q1')).toBeInTheDocument();
+    });
+  });
+
+  it('shows "2 cửa hàng" in Địa điểm column for multi-store jobs', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          jobPost('jp4', 'Nhân viên pha chế', [
+            { store: { name: 'Katinat Q1' } },
+            { store: { name: 'Katinat Q3' } },
+          ]),
+        ],
+        total: 1,
+      }),
+    }) as any;
+
+    renderWithProviders(<ManageJobPostsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('2 cửa hàng')).toBeInTheDocument();
+    });
   });
 });

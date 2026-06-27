@@ -7,7 +7,14 @@ import { PAGE_SIZE } from '@/lib/constants/pagination';
 import { useToast } from '@/components/Toast';
 import { ActionsDropdown } from '@/components/ActionsDropdown';
 
-type JobPost = { id: string; title: string; status: string; deadline: string };
+type JobPost = {
+  id: string;
+  title: string;
+  status: string;
+  deadline: string;
+  employmentType: string;
+  jobPostStores: { store: { name: string } }[];
+};
 
 export default function ManageJobPostsPage() {
   const showToast = useToast();
@@ -79,6 +86,7 @@ export default function ManageJobPostsPage() {
           <tr className="bg-primary text-white text-xs uppercase">
             <th className="px-4 py-3 text-left">Tên vị trí</th>
             <th className="px-4 py-3 text-left">Trạng thái</th>
+            <th className="px-4 py-3 text-left">Địa điểm</th>
             <th className="px-4 py-3 text-left">Hạn nộp</th>
             <th className="px-4 py-3 text-left">Hành động</th>
           </tr>
@@ -95,6 +103,11 @@ export default function ManageJobPostsPage() {
                 <span className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${STATUS_BADGE[post.status]}`}>
                   {STATUS_LABEL[post.status] ?? post.status}
                 </span>
+              </td>
+              <td className="px-4 py-3 text-text-secondary text-sm">
+                {(post.jobPostStores ?? []).length > 1
+                  ? `${post.jobPostStores.length} cửa hàng`
+                  : post.jobPostStores?.[0]?.store.name ?? '—'}
               </td>
               <td className="px-4 py-3 text-text-secondary">{post.deadline}</td>
               <td className="px-4 py-3">
