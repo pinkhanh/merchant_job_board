@@ -47,7 +47,12 @@ export default function AdminMerchantsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Quản lý Merchant</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Quản lý Merchant</h1>
+        <Link href="/admin/merchants/new" className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover">
+          + Tạo merchant mới
+        </Link>
+      </div>
       <table className="w-full bg-white border border-border rounded-lg shadow-card overflow-hidden">
         <thead>
           <tr className="bg-primary text-white text-xs uppercase">
