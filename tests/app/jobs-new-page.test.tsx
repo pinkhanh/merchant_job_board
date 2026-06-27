@@ -18,7 +18,7 @@ describe('JobWizardPage', () => {
           json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
         });
       }
-      if (url === '/api/jobs') {
+      if (url === '/api/merchant/jobs') {
         return Promise.resolve({ ok: true, json: async () => ({ id: 'jp1' }) });
       }
       // AI description endpoint
@@ -76,7 +76,7 @@ describe('JobWizardPage', () => {
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
     fireEvent.click(screen.getByLabelText('Trụ Sở Chính'));
     fireEvent.click(screen.getByText('Tiếp theo'));
-    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
+    await waitFor(() => screen.getByText('Tạo mô tả với AI'));
   }
 
   async function goToStep3() {
@@ -171,7 +171,7 @@ describe('JobWizardPage', () => {
           json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
         });
       }
-      if (url === '/api/jobs') {
+      if (url === '/api/merchant/jobs') {
         return Promise.resolve({ ok: true, json: async () => ({ id: 'jp1' }) });
       }
       if (url.includes('/api/ai/generate-description')) {
@@ -208,7 +208,7 @@ describe('JobWizardPage', () => {
       expect(pushMock).toHaveBeenCalledWith('/merchant/jobs');
     });
 
-    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/jobs');
+    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/merchant/jobs');
     expect(jobsCall).toBeTruthy();
     const body = JSON.parse(jobsCall[1].body);
     expect(body.storeIds).toEqual(['r1', 'r2']);
@@ -269,7 +269,7 @@ describe('JobWizardPage', () => {
       expect(pushMock).toHaveBeenCalledWith('/merchant/jobs');
     });
 
-    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/jobs');
+    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/merchant/jobs');
     expect(jobsCall).toBeTruthy();
     const body = JSON.parse(jobsCall[1].body);
     expect(body.salaryMin).toBe(5000000);
@@ -311,5 +311,50 @@ describe('JobWizardPage', () => {
     renderWithProviders(<JobWizardPage />);
     await waitFor(() => screen.getByText('Katinat Q1'));
     expect(screen.getByText('1 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh')).toBeInTheDocument();
+  });
+
+  it('shows specific API error message when posting fails', async () => {
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.startsWith('/api/merchant/stores')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
+        });
+      }
+      if (url === '/api/merchant/jobs') {
+        return Promise.resolve({
+          ok: false,
+          json: async () => ({ error: 'employmentType không hợp lệ' }),
+        });
+      }
+      if (url.includes('/api/ai/generate-description')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ roleOverview: 'Mô tả', requirements: 'Yêu cầu', benefits: 'Quyền lợi' }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+
+    renderWithProviders(<JobWizardPage />);
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+    fireEvent.click(screen.getByLabelText('Trụ Sở Chính'));
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByText('Tạo mô tả với AI'));
+
+    // Fill in title before generating description
+    const titleInputs = screen.getAllByRole('textbox');
+    fireEvent.change(titleInputs[0], { target: { value: 'Nhân viên bán hàng' } });
+
+    fireEvent.click(screen.getByText('Tạo mô tả với AI'));
+    await waitFor(() => screen.getByText(/Mô tả công việc/));
+
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng tin' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('employmentType không hợp lệ')).toBeInTheDocument();
+    });
   });
 });

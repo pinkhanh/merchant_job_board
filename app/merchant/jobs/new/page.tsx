@@ -174,7 +174,7 @@ export default function JobWizardPage() {
   async function publish() {
     setIsPublishing(true);
     try {
-      const res = await fetch('/api/jobs', {
+      const res = await fetch('/api/merchant/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -195,10 +195,17 @@ export default function JobWizardPage() {
         showToast('success', 'Đăng tin tuyển dụng thành công!');
         router.push('/merchant/jobs');
       } else {
-        showToast('error', 'Đăng tin thất bại, vui lòng thử lại');
+        let message = 'Đăng tin thất bại';
+        try {
+          const body = await res.json();
+          if (body?.error) message = body.error;
+        } catch {
+          // ignore JSON parse error
+        }
+        showToast('error', message);
       }
     } catch {
-      showToast('error', 'Đăng tin thất bại, vui lòng thử lại');
+      showToast('error', 'Đăng tin thất bại. Vui lòng thử lại.');
     } finally {
       setIsPublishing(false);
     }
