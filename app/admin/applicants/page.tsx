@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ApplicantDetailModal } from '@/components/ApplicantDetailModal';
 
 type Application = {
   id: string;
   applicantName: string;
   maskedPhone: string;
+  phoneNumber: string;
   importStatus: string;
   appliedAt: string;
   jobPost: {
@@ -43,6 +45,7 @@ export default function AdminApplicantsPage() {
   const [jobOptions, setJobOptions] = useState<JobOption[]>([]);
   const [merchantOptions, setMerchantOptions] = useState<MerchantOption[]>([]);
   const [exportLogs, setExportLogs] = useState<ExportLog[]>([]);
+  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
 
   const [jobPostId, setJobPostId] = useState('');
   const [merchantId, setMerchantId] = useState('');
@@ -173,7 +176,14 @@ export default function AdminApplicantsPage() {
         <tbody>
           {applications.map((app) => (
             <tr key={app.id} className="border-b border-border hover:bg-primary-surface">
-              <td className="px-4 py-3">{app.applicantName}</td>
+              <td className="px-4 py-3 text-sm">
+                  <button
+                    className="font-medium text-primary hover:underline text-left"
+                    onClick={() => setSelectedPhone(app.phoneNumber)}
+                  >
+                    {app.applicantName}
+                  </button>
+                </td>
               <td className="px-4 py-3 text-text-secondary">{app.maskedPhone}</td>
               <td className="px-4 py-3">{app.jobPost.merchant.brandName}</td>
               <td className="px-4 py-3 text-sm text-text-secondary whitespace-nowrap">
@@ -191,6 +201,13 @@ export default function AdminApplicantsPage() {
           ))}
         </tbody>
       </table>
+      {selectedPhone && (
+        <ApplicantDetailModal
+          phone={selectedPhone}
+          onClose={() => setSelectedPhone(null)}
+          isAdmin
+        />
+      )}
       {exportLogs.length > 0 && (
         <div className="mt-8">
           <h2 className="text-lg font-bold mb-4">Lịch sử xuất CSV</h2>

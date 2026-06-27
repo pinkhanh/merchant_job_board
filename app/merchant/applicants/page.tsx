@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Pagination } from '@/components/Pagination';
 import { PAGE_SIZE } from '@/lib/constants/pagination';
+import { ApplicantDetailModal } from '@/components/ApplicantDetailModal';
 
 type Application = {
   id: string;
@@ -47,6 +48,7 @@ export default function ApplicantsPage() {
   const [jobOptions, setJobOptions] = useState<JobOption[]>([]);
 
   const [exportLogs, setExportLogs] = useState<ExportLog[]>([]);
+  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
 
   const [jobPostId, setJobPostId] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
@@ -172,7 +174,14 @@ export default function ApplicantsPage() {
         <tbody>
           {applications.map((app) => (
             <tr key={app.id} className="border-b border-border hover:bg-primary-surface">
-              <td className="px-4 py-3">{app.applicantName}</td>
+              <td className="px-4 py-3 text-sm">
+                  <button
+                    className="font-medium text-primary hover:underline text-left"
+                    onClick={() => setSelectedPhone(app.phoneNumber)}
+                  >
+                    {app.applicantName}
+                  </button>
+                </td>
               <td className="px-4 py-3">
                 <span className="text-text-secondary">
                   {revealed[app.id] ?? maskPhone(app.phoneNumber)}
@@ -193,6 +202,12 @@ export default function ApplicantsPage() {
           ))}
         </tbody>
       </table>
+      {selectedPhone && (
+        <ApplicantDetailModal
+          phone={selectedPhone}
+          onClose={() => setSelectedPhone(null)}
+        />
+      )}
       {exportLogs.length > 0 && (
         <div className="mt-8">
           <h2 className="text-lg font-bold mb-4">Lịch sử xuất CSV</h2>
