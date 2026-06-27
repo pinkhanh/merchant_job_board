@@ -7,6 +7,8 @@ export type AdminApplicationFilters = {
   importStatus?: 'new' | 'imported';
   appliedFrom?: string;
   appliedTo?: string;
+  applicantName?: string;
+  phoneNumber?: string;
 };
 
 type SafeApplication = {
@@ -39,6 +41,8 @@ async function fetchApplications(filters: AdminApplicationFilters) {
       ...(filters.importStatus ? { importStatus: filters.importStatus } : {}),
       ...(filters.merchantId ? { jobPost: { merchantId: filters.merchantId } } : {}),
       ...(filters.jobPostTitle ? { jobPost: { title: { contains: filters.jobPostTitle, mode: 'insensitive' } } } : {}),
+      ...(filters.applicantName ? { applicantName: { contains: filters.applicantName, mode: 'insensitive' } } : {}),
+      ...(filters.phoneNumber ? { phoneNumber: { contains: filters.phoneNumber } } : {}),
       ...appliedAtRangeFilter(filters),
     },
     include: {

@@ -8,6 +8,7 @@ type Application = {
   id: string;
   applicantName: string;
   phoneNumber: string;
+  appliedAt: string;
   jobPost: { title: string };
 };
 
@@ -50,6 +51,8 @@ export default function ApplicantsPage() {
   const [jobPostId, setJobPostId] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
+  const [applicantName, setApplicantName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   useEffect(() => {
     fetch('/api/jobs')
@@ -65,14 +68,14 @@ export default function ApplicantsPage() {
   }, []);
 
   useEffect(() => {
-    const query = buildQuery({ page: String(page), jobPostId, appliedFrom, appliedTo });
+    const query = buildQuery({ page: String(page), jobPostId, appliedFrom, appliedTo, applicantName, phoneNumber });
     fetch(`/api/applications?${query}`)
       .then((res) => res.json())
       .then((body) => {
         setApplications(body.items);
         setTotal(body.total);
       });
-  }, [page, jobPostId, appliedFrom, appliedTo]);
+  }, [page, jobPostId, appliedFrom, appliedTo, applicantName, phoneNumber]);
 
   async function handleReveal(id: string) {
     const res = await fetch(`/api/applications/${id}/reveal-phone`, { method: 'POST' });
@@ -88,7 +91,7 @@ export default function ApplicantsPage() {
   }
 
   async function handleExport() {
-    const query = buildQuery({ jobPostId, appliedFrom, appliedTo });
+    const query = buildQuery({ jobPostId, appliedFrom, appliedTo, applicantName, phoneNumber });
     const res = await fetch(`/api/applications/export?${query}`);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -136,6 +139,20 @@ export default function ApplicantsPage() {
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
           />
         </label>
+        <input
+          type="text"
+          placeholder="Tìm theo tên"
+          value={applicantName}
+          onChange={(e) => handleFilterChange(setApplicantName)(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-border bg-white text-sm"
+        />
+        <input
+          type="text"
+          placeholder="Tìm theo SĐT"
+          value={phoneNumber}
+          onChange={(e) => handleFilterChange(setPhoneNumber)(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-border bg-white text-sm"
+        />
         <button
           onClick={handleExport}
           className="border border-border rounded-md px-3 py-2 text-sm font-medium text-primary hover:bg-primary-surface"
@@ -148,6 +165,7 @@ export default function ApplicantsPage() {
           <tr className="bg-primary text-white text-xs uppercase">
             <th className="px-4 py-3 text-left">Tên</th>
             <th className="px-4 py-3 text-left">SĐT</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Thời gian nộp</th>
             <th className="px-4 py-3 text-left">Vị trí</th>
           </tr>
         </thead>
@@ -164,6 +182,11 @@ export default function ApplicantsPage() {
                     Hiện SĐT
                   </button>
                 )}
+              </td>
+              <td className="px-4 py-3 text-sm text-text-secondary whitespace-nowrap">
+                {new Date(app.appliedAt).toLocaleDateString('vi-VN', {
+                  day: '2-digit', month: '2-digit', year: 'numeric',
+                })}
               </td>
               <td className="px-4 py-3">{app.jobPost.title}</td>
             </tr>

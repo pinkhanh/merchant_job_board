@@ -105,6 +105,34 @@ describe('adminApplicationService', () => {
     );
   });
 
+  it('applies an applicantName filter as a case-insensitive contains on applicantName', async () => {
+    (prisma.application.findMany as any).mockResolvedValue([]);
+
+    await listAllApplications({ applicantName: 'Nguyen' });
+
+    expect(prisma.application.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          applicantName: { contains: 'Nguyen', mode: 'insensitive' },
+        }),
+      })
+    );
+  });
+
+  it('applies a phoneNumber filter as a case-sensitive contains on phoneNumber', async () => {
+    (prisma.application.findMany as any).mockResolvedValue([]);
+
+    await listAllApplications({ phoneNumber: '0901' });
+
+    expect(prisma.application.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          phoneNumber: { contains: '0901' },
+        }),
+      })
+    );
+  });
+
   it('CSV export never includes a phone column or value', async () => {
     (prisma.application.findMany as any).mockResolvedValue([
       {

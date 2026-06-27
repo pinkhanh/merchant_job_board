@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import { renderWithProviders } from '@/tests/test-utils';
 
 import ApplicantsPage from '@/app/merchant/applicants/page';
@@ -58,6 +59,27 @@ describe('ApplicantsPage', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/applications?page=2');
     });
+  });
+
+  it('filters by applicant name when text is entered', async () => {
+    render(<ApplicantsPage />);
+    await waitFor(() => screen.getByRole('table'));
+    fireEvent.change(screen.getByPlaceholderText('Tìm theo tên'), { target: { value: 'Nguyen' } });
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('applicantName=Nguyen')
+      );
+    });
+  });
+
+  it('shows apply time column before position column', async () => {
+    render(<ApplicantsPage />);
+    await waitFor(() => screen.getByRole('table'));
+    const headers = screen.getAllByRole('columnheader').map(h => h.textContent);
+    const timeIdx = headers.findIndex(h => h?.includes('Thời gian nộp'));
+    const posIdx = headers.findIndex(h => h?.includes('Vị trí'));
+    expect(timeIdx).toBeGreaterThan(-1);
+    expect(timeIdx).toBeLessThan(posIdx);
   });
 
   it('shows CSV export history block', async () => {

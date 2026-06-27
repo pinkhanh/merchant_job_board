@@ -7,6 +7,7 @@ type Application = {
   applicantName: string;
   maskedPhone: string;
   importStatus: string;
+  appliedAt: string;
   jobPost: {
     title: string;
     merchant: { brandName: string };
@@ -47,6 +48,8 @@ export default function AdminApplicantsPage() {
   const [merchantId, setMerchantId] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
+  const [applicantName, setApplicantName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   useEffect(() => {
     fetch('/api/admin/jobs')
@@ -65,14 +68,14 @@ export default function AdminApplicantsPage() {
   }, []);
 
   useEffect(() => {
-    const query = buildQuery({ jobPostId, merchantId, appliedFrom, appliedTo });
+    const query = buildQuery({ jobPostId, merchantId, appliedFrom, appliedTo, applicantName, phoneNumber });
     fetch(`/api/admin/applications${query ? `?${query}` : ''}`)
       .then((res) => res.json())
       .then(setApplications);
-  }, [jobPostId, merchantId, appliedFrom, appliedTo]);
+  }, [jobPostId, merchantId, appliedFrom, appliedTo, applicantName, phoneNumber]);
 
   async function handleExport() {
-    const query = buildQuery({ jobPostId, merchantId, appliedFrom, appliedTo });
+    const query = buildQuery({ jobPostId, merchantId, appliedFrom, appliedTo, applicantName, phoneNumber });
     const res = await fetch(`/api/admin/applications/export${query ? `?${query}` : ''}`);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -135,6 +138,20 @@ export default function AdminApplicantsPage() {
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
           />
         </label>
+        <input
+          type="text"
+          placeholder="Tìm theo tên"
+          value={applicantName}
+          onChange={(e) => setApplicantName(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-border bg-white text-sm"
+        />
+        <input
+          type="text"
+          placeholder="Tìm theo SĐT"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-border bg-white text-sm"
+        />
         <button
           onClick={handleExport}
           className="border border-border rounded-md px-3 py-2 text-sm font-medium text-primary hover:bg-primary-surface"
@@ -148,6 +165,7 @@ export default function AdminApplicantsPage() {
             <th className="px-4 py-3 text-left">Tên</th>
             <th className="px-4 py-3 text-left">SĐT</th>
             <th className="px-4 py-3 text-left">Thương hiệu</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Thời gian nộp</th>
             <th className="px-4 py-3 text-left">Vị trí</th>
             <th className="px-4 py-3 text-left">Địa điểm</th>
           </tr>
@@ -158,6 +176,11 @@ export default function AdminApplicantsPage() {
               <td className="px-4 py-3">{app.applicantName}</td>
               <td className="px-4 py-3 text-text-secondary">{app.maskedPhone}</td>
               <td className="px-4 py-3">{app.jobPost.merchant.brandName}</td>
+              <td className="px-4 py-3 text-sm text-text-secondary whitespace-nowrap">
+                {new Date(app.appliedAt).toLocaleDateString('vi-VN', {
+                  day: '2-digit', month: '2-digit', year: 'numeric',
+                })}
+              </td>
               <td className="px-4 py-3">{app.jobPost.title}</td>
               <td className="px-4 py-3 text-text-secondary text-sm">
                 {app.jobPost.jobPostStores.length > 1
