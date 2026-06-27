@@ -7,7 +7,7 @@ export const createJobPostSchema = z.object({
   title: z.string().min(1),
   industry: z.string().min(1),
   jobCategory: z.string().optional(),
-  employmentType: z.enum(['part_time', 'shift', 'seasonal']),
+  employmentType: z.enum(['part_time', 'shift', 'seasonal', 'full_time']),
   salaryMin: z.number().int().nonnegative().optional(),
   salaryMax: z.number().int().nonnegative().optional(),
   salaryType: z.enum(['hourly', 'shift', 'monthly', 'negotiable']),

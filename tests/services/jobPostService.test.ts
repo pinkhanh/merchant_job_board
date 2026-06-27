@@ -41,8 +41,8 @@ describe('jobPostService.createJobPost', () => {
     await expect(createJobPost('m1', input)).rejects.toBeInstanceOf(PastDeadlineError);
   });
 
-  it('rejects an employment type outside part_time/shift/seasonal', async () => {
-    const input = { ...validInput, employmentType: 'full_time' };
+  it('rejects an employment type outside part_time/shift/seasonal/full_time', async () => {
+    const input = { ...validInput, employmentType: 'invalid_type' };
     await expect(createJobPost('m1', input)).rejects.toThrow();
   });
 
