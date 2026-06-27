@@ -18,25 +18,29 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const store = job.jobPostStores[0]?.store;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-
-    const res = await fetch('/api/applications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobPostId: job.id, applicantName: name, phoneNumber: phone }),
-    });
-    const body = await res.json();
-
-    if (!res.ok) {
-      setError(body.error ?? 'Đã có lỗi xảy ra, vui lòng thử lại.');
-      return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobPostId: job.id, applicantName: name, phoneNumber: phone }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body.error ?? 'Đã có lỗi xảy ra, vui lòng thử lại.');
+        return;
+      }
+      setSuccess(true);
+    } finally {
+      setIsSubmitting(false);
     }
-    setSuccess(true);
   }
 
   return (
@@ -104,8 +108,12 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
 
               {error && <Callout variant="error" message={error} />}
 
-              <button type="submit" className="bg-worker-primary text-white rounded-worker-pill py-3 font-bold mt-1">
-                Xác nhận
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-worker-primary text-white rounded-worker-pill py-3 font-bold text-base hover:bg-worker-primary-hover disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+              >
+                {isSubmitting ? 'Đang gửi...' : 'Ứng tuyển ngay'}
               </button>
             </form>
           </>

@@ -13,6 +13,7 @@ export default function ManageJobPostsPage() {
   const [jobPosts, setJobPosts] = useState<JobPost[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/jobs?page=${page}`)
@@ -29,6 +30,7 @@ export default function ManageJobPostsPage() {
       reactivate: 'Kích hoạt tin thành công',
       delete: 'Đã xoá tin tuyển dụng',
     };
+    setLoadingId(id);
     try {
       const res = await fetch(`/api/jobs/${id}`, {
         method: 'PATCH',
@@ -49,6 +51,8 @@ export default function ManageJobPostsPage() {
       }
     } catch {
       showToast('error', 'Thao tác thất bại, vui lòng thử lại');
+    } finally {
+      setLoadingId(null);
     }
   }
 
@@ -92,20 +96,26 @@ export default function ManageJobPostsPage() {
                 </span>
               </td>
               <td className="px-4 py-3 text-text-secondary">{post.deadline}</td>
-              <td className="px-4 py-3 flex gap-2">
-                {post.status === 'live' && (
-                  <button onClick={() => handleAction(post.id, 'pause')} className="text-primary text-sm hover:underline">
-                    Tạm dừng
-                  </button>
+              <td className="px-4 py-3">
+                {loadingId === post.id ? (
+                  <span className="text-sm text-text-secondary">Đang xử lý...</span>
+                ) : (
+                  <div className="flex gap-2">
+                    {post.status === 'live' && (
+                      <button onClick={() => handleAction(post.id, 'pause')} className="text-primary text-sm hover:underline">
+                        Tạm dừng
+                      </button>
+                    )}
+                    {post.status === 'paused' && (
+                      <button onClick={() => handleAction(post.id, 'reactivate')} className="text-primary text-sm hover:underline">
+                        Kích hoạt lại
+                      </button>
+                    )}
+                    <button onClick={() => handleAction(post.id, 'delete')} className="text-status-off-text text-sm hover:underline">
+                      Xoá
+                    </button>
+                  </div>
                 )}
-                {post.status === 'paused' && (
-                  <button onClick={() => handleAction(post.id, 'reactivate')} className="text-primary text-sm hover:underline">
-                    Kích hoạt lại
-                  </button>
-                )}
-                <button onClick={() => handleAction(post.id, 'delete')} className="text-status-off-text text-sm hover:underline">
-                  Xoá
-                </button>
               </td>
             </tr>
           ))}

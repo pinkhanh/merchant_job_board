@@ -9,6 +9,7 @@ export default function AdminJobsPage() {
   const showToast = useToast();
   const [jobPosts, setJobPosts] = useState<JobPost[]>([]);
   const [reasonDraft, setReasonDraft] = useState<Record<string, string>>({});
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/admin/jobs')
@@ -22,6 +23,7 @@ export default function AdminJobsPage() {
       showToast('error', 'Vui lòng nhập lý do tạm dừng');
       return;
     }
+    setLoadingId(id);
     try {
       const res = await fetch(`/api/admin/jobs/${id}/moderate`, {
         method: 'PATCH',
@@ -36,6 +38,8 @@ export default function AdminJobsPage() {
       }
     } catch {
       showToast('error', 'Tạm dừng thất bại, vui lòng thử lại');
+    } finally {
+      setLoadingId(null);
     }
   }
 
@@ -84,9 +88,10 @@ export default function AdminJobsPage() {
                 />
                 <button
                   onClick={() => handlePause(post.id)}
-                  className="bg-status-off-text text-white rounded-md px-3 py-1.5 text-sm font-semibold"
+                  disabled={loadingId === post.id}
+                  className="bg-status-off-text text-white rounded-md px-3 py-1.5 text-sm font-semibold disabled:opacity-60"
                 >
-                  Tạm dừng
+                  {loadingId === post.id ? 'Đang xử lý...' : 'Tạm dừng'}
                 </button>
               </td>
             </tr>

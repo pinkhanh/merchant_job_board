@@ -47,7 +47,9 @@ export default function JobWizardPage() {
   const [regionCity, setRegionCity] = useState('');
   const [regionDistrict, setRegionDistrict] = useState('');
   const [regionStoreCount, setRegionStoreCount] = useState<number | null>(null);
+  const [isRegionLoading, setIsRegionLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
   const [jobCategories, setJobCategories] = useState<string[]>([]);
   const [state, setState] = useState<WizardState>({
@@ -122,9 +124,14 @@ export default function JobWizardPage() {
       setState((s) => ({ ...s, storeIds: [] }));
       return;
     }
-    const ids = await fetchAllStoreIdsForRegion(regionCity, district);
-    setRegionStoreCount(ids.length);
-    setState((s) => ({ ...s, storeIds: ids }));
+    setIsRegionLoading(true);
+    try {
+      const ids = await fetchAllStoreIdsForRegion(regionCity, district);
+      setRegionStoreCount(ids.length);
+      setState((s) => ({ ...s, storeIds: ids }));
+    } finally {
+      setIsRegionLoading(false);
+    }
   }
 
   function goToStep2() {
@@ -165,6 +172,7 @@ export default function JobWizardPage() {
   }
 
   async function publish() {
+    setIsPublishing(true);
     try {
       const res = await fetch('/api/jobs', {
         method: 'POST',
@@ -191,6 +199,8 @@ export default function JobWizardPage() {
       }
     } catch {
       showToast('error', 'Đăng tin thất bại, vui lòng thử lại');
+    } finally {
+      setIsPublishing(false);
     }
   }
 
@@ -242,7 +252,7 @@ export default function JobWizardPage() {
         Quay lại
       </button>
       <button onClick={onPrimary} disabled={primaryDisabled} className={`${primaryButton} disabled:opacity-60 disabled:cursor-not-allowed`}>
-        {primaryLabel}
+        {primaryDisabled ? 'Đang xử lý...' : primaryLabel}
       </button>
     </div>
   );
@@ -368,6 +378,7 @@ export default function JobWizardPage() {
                   </select>
                 </label>
               </div>
+              {isRegionLoading && <p className="text-sm text-text-secondary">Đang tải danh sách cửa hàng...</p>}
               {regionStoreCount !== null && (
                 <p className="text-sm text-text-secondary">
                   Đã chọn {regionStoreCount} cửa hàng tại {regionDistrict}, {regionCity}
@@ -616,7 +627,7 @@ export default function JobWizardPage() {
           </div>
         )}
 
-        {ctaRow('Đăng tin', publish)}
+        {ctaRow('Đăng tin', publish, isPublishing)}
       </div>
     </div>
   );

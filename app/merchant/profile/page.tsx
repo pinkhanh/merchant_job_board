@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useStoreSearch } from '@/lib/hooks/useStoreSearch';
 import { StoreFilterBar } from '@/components/StoreFilterBar';
 import { MerchantProfileView } from '@/components/MerchantProfileView';
+import { useToast } from '@/components/Toast';
 
 type Profile = {
   brandName: string;
@@ -16,9 +17,11 @@ type Profile = {
 };
 
 export default function MerchantProfilePage() {
+  const showToast = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [categoryInput, setCategoryInput] = useState('');
   const [showAllStores, setShowAllStores] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const storeSearch = useStoreSearch();
 
   function loadProfile() {
@@ -33,11 +36,19 @@ export default function MerchantProfilePage() {
 
   async function handleSave() {
     if (!profile) return;
-    await fetch('/api/merchant/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: profile.description, hotline: profile.hotline }),
-    });
+    setIsSaving(true);
+    try {
+      await fetch('/api/merchant/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: profile.description, hotline: profile.hotline }),
+      });
+      showToast('success', 'Đã lưu thông tin thương hiệu');
+    } catch {
+      showToast('error', 'Lưu thất bại, vui lòng thử lại');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function persistJobCategories(next: string[]) {
@@ -82,6 +93,7 @@ export default function MerchantProfilePage() {
       storeTotal={storeSearch.total}
       readOnly={false}
       onSave={handleSave}
+      isSaving={isSaving}
       onSync={loadProfile}
       onDescriptionChange={(value) => setProfile({ ...profile, description: value })}
       onHotlineChange={(value) => setProfile({ ...profile, hotline: value })}

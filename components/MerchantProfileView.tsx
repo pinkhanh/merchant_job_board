@@ -26,6 +26,7 @@ export type MerchantProfileViewProps = {
 
   // Editable-mode only props (ignored when readOnly is true).
   onSave?: () => void;
+  isSaving?: boolean;
   onSync?: () => void;
   onDescriptionChange?: (value: string) => void;
   onHotlineChange?: (value: string) => void;
@@ -55,6 +56,7 @@ export function MerchantProfileView({
   storeTotal,
   readOnly,
   onSave,
+  isSaving,
   onSync,
   onDescriptionChange,
   onHotlineChange,
@@ -131,9 +133,10 @@ export function MerchantProfileView({
             <div className="flex gap-2 shrink-0">
               <button
                 onClick={onSave}
-                className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover"
+                disabled={isSaving}
+                className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover disabled:opacity-60"
               >
-                Chỉnh sửa
+                {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
               <button
                 onClick={onSync}
@@ -175,9 +178,10 @@ export function MerchantProfileView({
           </label>
           <button
             onClick={onSave}
-            className="bg-primary text-white rounded-md px-5 py-2.5 font-semibold hover:bg-primary-hover self-start"
+            disabled={isSaving}
+            className="bg-primary text-white rounded-md px-5 py-2.5 font-semibold hover:bg-primary-hover self-start disabled:opacity-60"
           >
-            Chỉnh sửa
+            {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
           </button>
         </div>
       )}

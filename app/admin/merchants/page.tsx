@@ -14,6 +14,7 @@ type Merchant = {
 export default function AdminMerchantsPage() {
   const showToast = useToast();
   const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/admin/merchants')
@@ -23,6 +24,7 @@ export default function AdminMerchantsPage() {
 
   async function toggleStatus(id: string, current: 'active' | 'inactive') {
     const next = current === 'active' ? 'inactive' : 'active';
+    setLoadingId(id);
     try {
       const res = await fetch(`/api/admin/merchants/${id}`, {
         method: 'PATCH',
@@ -37,6 +39,8 @@ export default function AdminMerchantsPage() {
       }
     } catch {
       showToast('error', 'Cập nhật thất bại, vui lòng thử lại');
+    } finally {
+      setLoadingId(null);
     }
   }
 
@@ -65,13 +69,14 @@ export default function AdminMerchantsPage() {
               <td className="px-4 py-3">
                 <button
                   onClick={() => toggleStatus(m.id, m.status)}
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${
+                  disabled={loadingId === m.id}
+                  className={`text-[11px] font-medium px-2 py-0.5 rounded-sm disabled:opacity-60 ${
                     m.status === 'active'
                       ? 'bg-status-active-bg text-status-active-text'
                       : 'bg-status-off-bg text-status-off-text'
                   }`}
                 >
-                  {m.status === 'active' ? 'Hoạt động' : 'Tạm ngưng'}
+                  {loadingId === m.id ? '...' : m.status === 'active' ? 'Hoạt động' : 'Tạm ngưng'}
                 </button>
               </td>
             </tr>

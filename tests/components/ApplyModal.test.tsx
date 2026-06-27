@@ -27,7 +27,7 @@ describe('ApplyModal', () => {
 
     fireEvent.change(screen.getByLabelText('Họ và tên *'), { target: { value: 'Nguyễn Văn A' } });
     fireEvent.change(screen.getByLabelText('Số điện thoại *'), { target: { value: '0987654321' } });
-    fireEvent.click(screen.getByText('Xác nhận'));
+    fireEvent.click(screen.getByText('Ứng tuyển ngay'));
 
     await waitFor(() => {
       expect(screen.getByText('Đã gửi hồ sơ!')).toBeInTheDocument();
@@ -40,10 +40,25 @@ describe('ApplyModal', () => {
 
     fireEvent.change(screen.getByLabelText('Họ và tên *'), { target: { value: 'Nguyễn Văn A' } });
     fireEvent.change(screen.getByLabelText('Số điện thoại *'), { target: { value: '0987654321' } });
-    fireEvent.click(screen.getByText('Xác nhận'));
+    fireEvent.click(screen.getByText('Ứng tuyển ngay'));
 
     await waitFor(() => {
       expect(screen.getByText('Bạn đã ứng tuyển vào vị trí này rồi.')).toBeInTheDocument();
     });
+  });
+
+  it('disables the submit button while the form is submitting', async () => {
+    let resolveSubmit!: () => void;
+    global.fetch = vi.fn().mockReturnValue(
+      new Promise<Response>((res) => {
+        resolveSubmit = () => res({ ok: true, json: async () => ({}) } as Response);
+      })
+    );
+    render(<ApplyModal job={job} onClose={vi.fn()} />);
+    fireEvent.change(screen.getByPlaceholderText(/Họ và tên/i), { target: { value: 'Nguyen Van A' } });
+    fireEvent.change(screen.getByPlaceholderText(/Số điện thoại/i), { target: { value: '0901234567' } });
+    fireEvent.click(screen.getByRole('button', { name: /Ứng tuyển/i }));
+    expect(screen.getByRole('button', { name: /Đang gửi/i })).toBeDisabled();
+    resolveSubmit();
   });
 });

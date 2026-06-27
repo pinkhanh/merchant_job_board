@@ -1,6 +1,7 @@
 // tests/app/merchant-profile-page.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { renderWithProviders } from '@/tests/test-utils';
 
 import MerchantProfilePage from '@/app/merchant/profile/page';
 
@@ -37,7 +38,7 @@ describe('MerchantProfilePage', () => {
   });
 
   it('renders the brand name and the store list', async () => {
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
     await waitFor(() => {
       expect(screen.getByText('Jollibee Việt Nam')).toBeInTheDocument();
       expect(screen.getByText('Cửa hàng Quận 1')).toBeInTheDocument();
@@ -45,7 +46,7 @@ describe('MerchantProfilePage', () => {
   });
 
   it('shows the store search/filter bar after expanding "Xem tất cả cửa hàng"', async () => {
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
     await waitFor(() => {
       expect(screen.getByText('Xem tất cả cửa hàng')).toBeInTheDocument();
     });
@@ -65,7 +66,7 @@ describe('MerchantProfilePage', () => {
       stores: { items: [{ id: 's1', name: 'Cửa hàng Quận 1' }], total: 11 },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
     await waitFor(() => {
       expect(screen.getByText('Xem tất cả cửa hàng')).toBeInTheDocument();
     });
@@ -87,7 +88,7 @@ describe('MerchantProfilePage', () => {
       stores: { items: [], total: 0 },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
     await waitFor(() => {
       const banner = screen.getByAltText('Ảnh bìa thương hiệu') as HTMLImageElement;
       expect(banner.src).toBe('https://cdn.example.com/banner.png');
@@ -101,7 +102,7 @@ describe('MerchantProfilePage', () => {
       stores: { items: [], total: 0 },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
     await waitFor(() => {
       expect(screen.getByTestId('banner-placeholder')).toBeInTheDocument();
     });
@@ -118,7 +119,7 @@ describe('MerchantProfilePage', () => {
       stores: { items: [], total: 0 },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
     await waitFor(() => {
       const logo = screen.getByAltText('Logo Jollibee') as HTMLImageElement;
       expect(logo.src).toBe('https://cdn.example.com/logo.png');
@@ -132,7 +133,7 @@ describe('MerchantProfilePage', () => {
       stores: { items: [], total: 0 },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
     await waitFor(() => {
       expect(screen.getByTestId('logo-placeholder')).toBeInTheDocument();
     });
@@ -151,7 +152,7 @@ describe('MerchantProfilePage', () => {
       },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText('Cửa hàng A')).toBeInTheDocument();
@@ -174,7 +175,7 @@ describe('MerchantProfilePage', () => {
       stores: { items: [], total: 0 },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText('Bán hàng')).toBeInTheDocument();
@@ -203,7 +204,7 @@ describe('MerchantProfilePage', () => {
       stores: { items: [], total: 0 },
     });
 
-    render(<MerchantProfilePage />);
+    renderWithProviders(<MerchantProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText('Phục vụ')).toBeInTheDocument();
