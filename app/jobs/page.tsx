@@ -143,18 +143,32 @@ function JobsPageContent() {
       <h1 className="text-2xl font-extrabold mb-1 text-worker-primary">
         Tìm việc làm cùng MoMo
       </h1>
-      <p className="text-sm text-worker-text-secondary mb-5">
-        Hàng loạt việc làm part-time tại các thương hiệu cùng MoMo
+      <p className="text-sm text-worker-text-secondary mb-2">
+        Hàng loạt việc làm tại các thương hiệu cùng MoMo
+      </p>
+      <p className="text-sm font-semibold text-worker-text-secondary mb-5">
+        {total > 0 ? `${total} việc làm` : ''}
       </p>
 
       {counts.merchant.length > 0 && (
-        <div className="flex gap-5 overflow-x-auto pb-3 mb-5">
+        <div className="flex gap-5 overflow-x-auto pb-3 mb-5 justify-center flex-wrap">
           {counts.merchant.map((m) => (
-            <button key={m.id} onClick={() => setMerchantId(m.id === merchantId ? '' : m.id)} className="flex flex-col items-center gap-1.5 shrink-0">
+            <button
+              key={m.id}
+              onClick={() => setMerchantId(m.id === merchantId ? '' : m.id)}
+              className="flex flex-col items-center gap-1.5 shrink-0"
+            >
               <span className={m.id === merchantId ? 'rounded-full ring-2 ring-worker-primary ring-offset-1' : ''}>
-                <Avatar variant={m.logoUrl ? 'image' : 'person'} src={m.logoUrl ?? undefined} alt={m.brandName} size={56} />
+                <Avatar
+                  variant={m.logoUrl ? 'image' : 'person'}
+                  src={m.logoUrl ?? undefined}
+                  alt={m.brandName}
+                  size={56}
+                />
               </span>
-              <span className="text-xs text-worker-text-secondary max-w-[64px] text-center leading-tight">{m.brandName}</span>
+              <span className="text-xs text-worker-text-secondary max-w-[64px] text-center leading-tight">
+                {m.brandName}
+              </span>
             </button>
           ))}
         </div>

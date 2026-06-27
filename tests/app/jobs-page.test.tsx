@@ -99,4 +99,20 @@ describe('JobsPage', () => {
     });
     expect(screen.queryByRole('img', { name: 'Katinat' })).not.toBeInTheDocument();
   });
+
+  it('renders the updated description text', async () => {
+    render(<JobsPage />);
+    await waitFor(() => {
+      expect(
+        screen.getByText('Hàng loạt việc làm tại các thương hiệu cùng MoMo')
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows job result count', async () => {
+    render(<JobsPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/1 việc làm/)).toBeInTheDocument();
+    });
+  });
 });
