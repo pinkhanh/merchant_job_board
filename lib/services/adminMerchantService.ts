@@ -22,6 +22,10 @@ export async function listMerchants(filters: MerchantFilters = {}) {
 export const createMerchantSchema = z.object({
   brandName: z.string().min(1),
   industry: z.string().min(1),
+  description: z.string().max(500).optional(),
+  hotline: z.string().optional(),
+  logoUrl: z.string().url().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  bannerUrl: z.string().url().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   username: z.string().min(3),
   password: z.string().min(8),
 });
@@ -32,7 +36,14 @@ export async function createMerchant(rawInput: unknown) {
 
   return prisma.$transaction(async (tx) => {
     const merchant = await tx.merchant.create({
-      data: { brandName: input.brandName, industry: input.industry },
+      data: {
+        brandName: input.brandName,
+        industry: input.industry,
+        description: input.description,
+        hotline: input.hotline,
+        logoUrl: input.logoUrl,
+        bannerUrl: input.bannerUrl,
+      },
     });
     const user = await tx.user.create({
       data: {
