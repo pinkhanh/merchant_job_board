@@ -104,6 +104,52 @@ describe('adminMerchantService', () => {
     );
   });
 
+  it('createMerchant passes logoUrl and bannerUrl to merchant.create()', async () => {
+    (mockMerchantCreate as any).mockResolvedValue({ id: 'm1', brandName: 'Jollibee', industry: 'F&B' });
+    (mockUserCreate as any).mockResolvedValue({ id: 'u1', username: 'jollibee_admin' });
+
+    await createMerchant({
+      brandName: 'Jollibee',
+      industry: 'F&B',
+      logoUrl: 'https://example.com/logo.png',
+      bannerUrl: 'https://example.com/banner.jpg',
+      username: 'jollibee_admin',
+      password: 'password123',
+    });
+
+    expect(mockMerchantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          logoUrl: 'https://example.com/logo.png',
+          bannerUrl: 'https://example.com/banner.jpg',
+        }),
+      })
+    );
+  });
+
+  it('createMerchant transforms empty string logoUrl and bannerUrl to undefined', async () => {
+    (mockMerchantCreate as any).mockResolvedValue({ id: 'm1', brandName: 'Jollibee', industry: 'F&B' });
+    (mockUserCreate as any).mockResolvedValue({ id: 'u1', username: 'jollibee_admin' });
+
+    await createMerchant({
+      brandName: 'Jollibee',
+      industry: 'F&B',
+      logoUrl: '',
+      bannerUrl: '',
+      username: 'jollibee_admin',
+      password: 'password123',
+    });
+
+    expect(mockMerchantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          logoUrl: undefined,
+          bannerUrl: undefined,
+        }),
+      })
+    );
+  });
+
   it('activates and deactivates a merchant', async () => {
     await setMerchantStatus('m1', 'inactive');
     expect(prisma.merchant.update).toHaveBeenCalledWith({ where: { id: 'm1' }, data: { status: 'inactive' } });
