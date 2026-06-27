@@ -314,6 +314,11 @@ export default function JobWizardPage() {
                 district={storeSearch.district}
                 onDistrictChange={storeSearch.setDistrict}
               />
+              <p className="text-sm text-text-secondary mb-2">
+                {storeSearch.total > 0
+                  ? `Hiển thị ${storeSearch.items.length} / ${storeSearch.total} cửa hàng`
+                  : 'Không tìm thấy cửa hàng'}
+              </p>
               <div className="flex flex-col gap-2 mb-4">
                 {storeSearch.items.map((store) => (
                   <label
@@ -388,6 +393,11 @@ export default function JobWizardPage() {
           )}
 
           {stepError && <p className="text-status-off-text text-sm mb-4">{stepError}</p>}
+          {state.storeIds.length > 0 && (
+            <p className="text-sm text-primary font-semibold mb-2">
+              Đã chọn {state.storeIds.length} cửa hàng
+            </p>
+          )}
           <div className="flex justify-end">
             <button onClick={goToStep2} className={primaryButton}>
               Tiếp theo

@@ -276,4 +276,15 @@ describe('JobWizardPage', () => {
     expect(body.salaryMax).toBe(8000000);
     expect(body.salaryType).toBe('monthly');
   });
+
+  it('shows store count summary in step 1', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ items: [{ id: 's1', name: 'Katinat Q1', district: 'Quận 1', city: 'HCM', streetAddress: '1 Lê Lợi', ward: 'Phường 1' }], total: 3 }),
+    }) as any;
+    renderWithProviders(<JobWizardPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/3 cửa hàng/)).toBeInTheDocument();
+    });
+  });
 });
