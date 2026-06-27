@@ -37,6 +37,10 @@ export async function GET(req: Request) {
     status: (searchParams.get('status') as any) ?? undefined,
     storeId: searchParams.get('storeId') ?? undefined,
     industry: searchParams.get('industry') ?? undefined,
+    employmentType: searchParams.get('employmentType') ?? undefined,
+    jobCategory: searchParams.get('jobCategory') ?? undefined,
+    createdFrom: searchParams.get('createdFrom') ?? undefined,
+    createdTo: searchParams.get('createdTo') ?? undefined,
     page: parsePage(pageParam),
     all: pageParam === null,
   });

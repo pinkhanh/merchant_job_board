@@ -16,21 +16,44 @@ type JobPost = {
   jobPostStores: { store: { name: string } }[];
 };
 
+function formatDeadline(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+}
+
 export default function ManageJobPostsPage() {
   const showToast = useToast();
   const [jobPosts, setJobPosts] = useState<JobPost[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [createdFrom, setCreatedFrom] = useState('');
+  const [createdTo, setCreatedTo] = useState('');
+  const [filterEmploymentType, setFilterEmploymentType] = useState('');
+  const [filterStoreId, setFilterStoreId] = useState('');
+  const [filterJobCategory, setFilterJobCategory] = useState('');
+  const [storeOptions, setStoreOptions] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
-    fetch(`/api/jobs?page=${page}`)
+    fetch('/api/merchant/stores?page=1')
+      .then((r) => r.json())
+      .then((b) => setStoreOptions(b.items ?? []));
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams({ page: String(page) });
+    if (createdFrom) params.set('createdFrom', createdFrom);
+    if (createdTo) params.set('createdTo', createdTo);
+    if (filterEmploymentType) params.set('employmentType', filterEmploymentType);
+    if (filterStoreId) params.set('storeId', filterStoreId);
+    if (filterJobCategory) params.set('jobCategory', filterJobCategory);
+    fetch(`/api/jobs?${params.toString()}`)
       .then((res) => res.json())
       .then((body) => {
         setJobPosts(body.items);
         setTotal(body.total);
       });
-  }, [page]);
+  }, [page, createdFrom, createdTo, filterEmploymentType, filterStoreId, filterJobCategory]);
 
   async function handleAction(id: string, action: 'pause' | 'reactivate' | 'delete') {
     const ACTION_LABELS: Record<string, string> = {
@@ -81,6 +104,53 @@ export default function ManageJobPostsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Quản lý tin tuyển dụng</h1>
+      <div className="flex flex-wrap gap-3 mb-4 items-end">
+        <label className="flex flex-col gap-1 text-xs font-medium">
+          Từ ngày tạo
+          <input
+            type="date"
+            value={createdFrom}
+            onChange={(e) => { setCreatedFrom(e.target.value); setPage(1); }}
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium">
+          Đến ngày tạo
+          <input
+            type="date"
+            value={createdTo}
+            onChange={(e) => { setCreatedTo(e.target.value); setPage(1); }}
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium">
+          Loại hình
+          <select
+            value={filterEmploymentType}
+            onChange={(e) => { setFilterEmploymentType(e.target.value); setPage(1); }}
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
+          >
+            <option value="">Tất cả</option>
+            <option value="part_time">Bán thời gian</option>
+            <option value="full_time">Toàn thời gian</option>
+            <option value="shift">Theo ca</option>
+            <option value="seasonal">Thời vụ</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium">
+          Cửa hàng
+          <select
+            value={filterStoreId}
+            onChange={(e) => { setFilterStoreId(e.target.value); setPage(1); }}
+            className="border border-border rounded-md px-2 py-2 text-sm bg-white"
+          >
+            <option value="">Tất cả cửa hàng</option>
+            {storeOptions.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </label>
+      </div>
       <table className="w-full bg-white border border-border rounded-lg shadow-card overflow-hidden">
         <thead>
           <tr className="bg-primary text-white text-xs uppercase">
@@ -109,7 +179,7 @@ export default function ManageJobPostsPage() {
                   ? `${post.jobPostStores.length} cửa hàng`
                   : post.jobPostStores?.[0]?.store.name ?? '—'}
               </td>
-              <td className="px-4 py-3 text-text-secondary">{post.deadline}</td>
+              <td className="px-4 py-3 text-text-secondary">{formatDeadline(post.deadline)}</td>
               <td className="px-4 py-3">
                 <ActionsDropdown
                   isLoading={loadingId === post.id}

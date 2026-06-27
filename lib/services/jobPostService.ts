@@ -67,6 +67,10 @@ export type JobPostFilters = {
   industry?: string;
   page?: number;
   all?: boolean;
+  employmentType?: string;
+  jobCategory?: string;
+  createdFrom?: string;
+  createdTo?: string;
 };
 
 export async function listJobPosts(merchantId: string, filters: JobPostFilters = {}) {
@@ -77,7 +81,17 @@ export async function listJobPosts(merchantId: string, filters: JobPostFilters =
     deletedAt: null,
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.industry ? { industry: filters.industry } : {}),
+    ...(filters.employmentType ? { employmentType: filters.employmentType } : {}),
+    ...(filters.jobCategory ? { jobCategory: filters.jobCategory } : {}),
     ...(filters.storeId ? { jobPostStores: { some: { storeId: filters.storeId } } } : {}),
+    ...((filters.createdFrom || filters.createdTo)
+      ? {
+          createdAt: {
+            ...(filters.createdFrom ? { gte: new Date(filters.createdFrom) } : {}),
+            ...(filters.createdTo ? { lte: new Date(filters.createdTo) } : {}),
+          },
+        }
+      : {}),
   };
 
   const [items, total] = await Promise.all([
