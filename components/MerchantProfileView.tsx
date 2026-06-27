@@ -27,7 +27,6 @@ export type MerchantProfileViewProps = {
   // Editable-mode only props (ignored when readOnly is true).
   onSave?: () => void;
   isSaving?: boolean;
-  onSync?: () => void;
   onDescriptionChange?: (value: string) => void;
   onHotlineChange?: (value: string) => void;
   categoryInput?: string;
@@ -57,7 +56,6 @@ export function MerchantProfileView({
   readOnly,
   onSave,
   isSaving,
-  onSync,
   onDescriptionChange,
   onHotlineChange,
   categoryInput,
@@ -110,9 +108,6 @@ export function MerchantProfileView({
         </div>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 px-6 pt-12 pb-6">
           <div className="flex flex-col gap-2">
-            <span className="bg-status-info-bg text-status-info-text text-[11px] font-semibold tracking-wide uppercase rounded-md px-3 py-1 inline-block self-start">
-              Đồng bộ từ Business Page
-            </span>
             <h1 className="text-2xl font-bold">{brandName}</h1>
             <div className="flex items-center gap-4 text-sm text-text-secondary">
               {industry && (
@@ -137,20 +132,6 @@ export function MerchantProfileView({
                 className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover disabled:opacity-60"
               >
                 {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </button>
-              <button
-                onClick={onSync}
-                className="border border-border rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-surface"
-              >
-                Đồng bộ lại
-              </button>
-              <button
-                type="button"
-                disabled
-                title="Chưa có liên kết Business Page"
-                className="border border-border rounded-md px-4 py-2 text-sm font-semibold text-text-secondary cursor-not-allowed opacity-60"
-              >
-                Xem Business Page
               </button>
             </div>
           )}
@@ -223,24 +204,6 @@ export function MerchantProfileView({
 
         {/* Right column (sidebar) */}
         <div className="flex flex-col gap-4">
-          <div className="bg-white border border-border rounded-lg shadow-card p-6">
-            <h2 className="text-lg font-bold mb-2">Thông tin đồng bộ</h2>
-            <p className="text-sm text-text-secondary mb-3">
-              Thông tin thương hiệu được đồng bộ từ MoMo Business Page. Mọi thay đổi về tên, logo, ảnh bìa và ngành
-              nghề nên được thực hiện trên Business Page để đảm bảo dữ liệu thống nhất.
-            </p>
-            {!readOnly && (
-              <button
-                type="button"
-                disabled
-                title="Chưa có liên kết Business Page"
-                className="text-primary text-sm hover:underline opacity-60 cursor-not-allowed"
-              >
-                Đi đến Business Page
-              </button>
-            )}
-          </div>
-
           <div className="bg-white border border-border rounded-lg shadow-card p-6">
             <h2 className="text-lg font-bold mb-1">Quản lý danh sách ngành nghề</h2>
             <p className="text-sm text-text-secondary mb-3">Thiết lập ngành nghề</p>
