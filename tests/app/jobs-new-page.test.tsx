@@ -18,7 +18,7 @@ describe('JobWizardPage', () => {
           json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
         });
       }
-      if (url === '/api/merchant/jobs') {
+      if (url === '/api/jobs') {
         return Promise.resolve({ ok: true, json: async () => ({ id: 'jp1' }) });
       }
       // AI description endpoint
@@ -171,7 +171,7 @@ describe('JobWizardPage', () => {
           json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
         });
       }
-      if (url === '/api/merchant/jobs') {
+      if (url === '/api/jobs') {
         return Promise.resolve({ ok: true, json: async () => ({ id: 'jp1' }) });
       }
       if (url.includes('/api/ai/generate-description')) {
@@ -208,7 +208,7 @@ describe('JobWizardPage', () => {
       expect(pushMock).toHaveBeenCalledWith('/merchant/jobs');
     });
 
-    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/merchant/jobs');
+    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/jobs');
     expect(jobsCall).toBeTruthy();
     const body = JSON.parse(jobsCall[1].body);
     expect(body.storeIds).toEqual(['r1', 'r2']);
@@ -269,7 +269,7 @@ describe('JobWizardPage', () => {
       expect(pushMock).toHaveBeenCalledWith('/merchant/jobs');
     });
 
-    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/merchant/jobs');
+    const jobsCall = (global.fetch as any).mock.calls.find((c: any[]) => c[0] === '/api/jobs');
     expect(jobsCall).toBeTruthy();
     const body = JSON.parse(jobsCall[1].body);
     expect(body.salaryMin).toBe(5000000);
@@ -321,7 +321,7 @@ describe('JobWizardPage', () => {
           json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
         });
       }
-      if (url === '/api/merchant/jobs') {
+      if (url === '/api/jobs') {
         return Promise.resolve({
           ok: false,
           json: async () => ({ error: 'employmentType không hợp lệ' }),

@@ -174,7 +174,7 @@ export default function JobWizardPage() {
   async function publish() {
     setIsPublishing(true);
     try {
-      const res = await fetch('/api/merchant/jobs', {
+      const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -205,7 +205,7 @@ export default function JobWizardPage() {
         showToast('error', message);
       }
     } catch {
-      showToast('error', 'Đăng tin thất bại. Vui lòng thử lại.');
+      showToast('error', 'Đăng tin thất bại, vui lòng thử lại');
     } finally {
       setIsPublishing(false);
     }
