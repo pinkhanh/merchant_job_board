@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 export type ProfileStore = {
   id: string;
@@ -9,6 +9,7 @@ export type ProfileStore = {
   ward?: string | null;
   district?: string | null;
   city?: string | null;
+  openingHours?: string | null;
   createdAt?: string;
 };
 
@@ -64,14 +65,20 @@ export function MerchantProfileView({
   onRemoveCategory,
   expandedStoresSlot,
 }: MerchantProfileViewProps) {
+  const [storeSearch, setStoreSearch] = useState('');
+
   const storesByOldest = [...stores].sort((a, b) => {
     const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return aTime - bTime;
   });
 
-  const previewStores = storesByOldest.slice(0, PREVIEW_STORE_COUNT);
   const headquartersStoreId = storesByOldest[0]?.id;
+  const previewStores = storesByOldest.slice(0, PREVIEW_STORE_COUNT);
+
+  const visibleStores = previewStores.filter(s =>
+    s.name.toLowerCase().includes(storeSearch.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -180,20 +187,31 @@ export function MerchantProfileView({
 
           <div className="bg-white border border-border rounded-lg shadow-card p-6">
             <h2 className="text-lg font-bold mb-4">Danh sách cửa hàng ({storeTotal})</h2>
+            <input
+              type="text"
+              placeholder="Tìm cửa hàng..."
+              value={storeSearch}
+              onChange={e => setStoreSearch(e.target.value)}
+              className="mt-3 mb-4 w-full max-w-sm px-3 py-2 rounded-lg border border-border bg-white text-sm"
+            />
             <ul className="divide-y divide-border">
-              {previewStores.map((s) => (
-                <li key={s.id} className="py-3 flex items-center gap-2">
-                  <span aria-hidden="true">🏬</span>
-                  <span className="font-medium">{s.name}</span>
-                  {s.id === headquartersStoreId && (
-                    <span className="bg-status-info-bg text-status-info-text text-[11px] font-medium px-2 py-0.5 rounded-sm">
-                      Trụ sở chính
-                    </span>
-                  )}
-                  {(s.streetAddress || s.ward || s.district || s.city) && (
-                    <span className="text-text-secondary text-sm">
-                      {[s.streetAddress, s.ward, s.district, s.city].filter(Boolean).join(', ')}
-                    </span>
+              {visibleStores.map((store) => (
+                <li key={store.id} className="py-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-foreground">{store.name}</span>
+                    {store.id === headquartersStoreId && (
+                      <span className="bg-status-info-bg text-status-info-text text-[11px] font-medium px-2 py-0.5 rounded-sm">
+                        Trụ sở chính
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-text-secondary mt-0.5">
+                    {[store.streetAddress, store.ward, store.district, store.city].filter(Boolean).join(', ')}
+                  </p>
+                  {store.openingHours && (
+                    <p className="text-sm text-text-secondary mt-0.5">
+                      Giờ làm việc: {store.openingHours}
+                    </p>
                   )}
                 </li>
               ))}
@@ -205,8 +223,7 @@ export function MerchantProfileView({
         {/* Right column (sidebar) */}
         <div className="flex flex-col gap-4">
           <div className="bg-white border border-border rounded-lg shadow-card p-6">
-            <h2 className="text-lg font-bold mb-1">Quản lý danh sách ngành nghề</h2>
-            <p className="text-sm text-text-secondary mb-3">Thiết lập ngành nghề</p>
+            <h2 className="text-lg font-bold mb-4">Quản lý danh sách ngành nghề</h2>
             <div className="flex flex-wrap gap-2 mb-3">
               {(jobCategories ?? []).map((category) =>
                 readOnly ? (
