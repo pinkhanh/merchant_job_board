@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '@/tests/test-utils';
 
 import AdminApplicantsPage from '@/app/admin/applicants/page';
 
@@ -9,7 +10,7 @@ function application(id: string, name: string, brandName: string) {
     applicantName: name,
     maskedPhone: '09••••••21',
     importStatus: 'new',
-    jobPost: { title: 'Nhân viên pha chế', merchant: { brandName } },
+    jobPost: { title: 'Nhân viên pha chế', merchant: { brandName }, jobPostStores: [] },
   };
 }
 
@@ -44,5 +45,32 @@ describe('AdminApplicantsPage', () => {
     expect(screen.getAllByText('Cửa hàng ABC').length).toBeGreaterThan(0);
     expect(screen.getByText('Thương hiệu')).toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledWith('/api/admin/applications');
+  });
+
+  it('shows store count for multi-store jobs', async () => {
+    const multiStoreApp = {
+      id: 'app1',
+      applicantName: 'Nguyen Van A',
+      maskedPhone: '09••••••67',
+      importStatus: 'new',
+      jobPost: {
+        title: 'Nhân viên bán hàng',
+        merchant: { brandName: 'Katinat' },
+        jobPostStores: [
+          { store: { name: 'Katinat Q1' } },
+          { store: { name: 'Katinat Q3' } },
+        ],
+      },
+    };
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/admin/jobs')) return Promise.resolve({ ok: true, json: async () => [] });
+      if (url.includes('/api/admin/merchants')) return Promise.resolve({ ok: true, json: async () => [] });
+      return Promise.resolve({ ok: true, json: async () => [multiStoreApp] });
+    }) as any;
+
+    renderWithProviders(<AdminApplicantsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('2 cửa hàng')).toBeInTheDocument();
+    });
   });
 });

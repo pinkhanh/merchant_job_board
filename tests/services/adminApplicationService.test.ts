@@ -43,7 +43,15 @@ describe('adminApplicationService', () => {
 
     expect(prisma.application.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        include: { jobPost: { select: { title: true, merchant: { select: { brandName: true } } } } },
+        include: {
+          jobPost: {
+            select: {
+              title: true,
+              merchant: { select: { brandName: true } },
+              jobPostStores: { include: { store: { select: { name: true } } } },
+            },
+          },
+        },
       })
     );
     expect(result[0].jobPost.merchant.brandName).toBe('Cửa hàng ABC');

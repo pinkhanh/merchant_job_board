@@ -7,7 +7,11 @@ type Application = {
   applicantName: string;
   maskedPhone: string;
   importStatus: string;
-  jobPost: { title: string; merchant: { brandName: string } };
+  jobPost: {
+    title: string;
+    merchant: { brandName: string };
+    jobPostStores: { store: { name: string } }[];
+  };
 };
 
 type JobOption = { id: string; title: string };
@@ -125,6 +129,7 @@ export default function AdminApplicantsPage() {
             <th className="px-4 py-3 text-left">SĐT</th>
             <th className="px-4 py-3 text-left">Thương hiệu</th>
             <th className="px-4 py-3 text-left">Vị trí</th>
+            <th className="px-4 py-3 text-left">Địa điểm</th>
           </tr>
         </thead>
         <tbody>
@@ -134,6 +139,11 @@ export default function AdminApplicantsPage() {
               <td className="px-4 py-3 text-text-secondary">{app.maskedPhone}</td>
               <td className="px-4 py-3">{app.jobPost.merchant.brandName}</td>
               <td className="px-4 py-3">{app.jobPost.title}</td>
+              <td className="px-4 py-3 text-text-secondary text-sm">
+                {app.jobPost.jobPostStores.length > 1
+                  ? `${app.jobPost.jobPostStores.length} cửa hàng`
+                  : app.jobPost.jobPostStores[0]?.store.name ?? '—'}
+              </td>
             </tr>
           ))}
         </tbody>

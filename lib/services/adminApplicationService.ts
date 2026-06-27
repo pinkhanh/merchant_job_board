@@ -15,7 +15,11 @@ type SafeApplication = {
   maskedPhone: string;
   importStatus: string;
   appliedAt: Date;
-  jobPost: { title: string; merchant: { brandName: string } };
+  jobPost: {
+    title: string;
+    merchant: { brandName: string };
+    jobPostStores: { store: { name: string } }[];
+  };
 };
 
 function appliedAtRangeFilter(filters: AdminApplicationFilters) {
@@ -37,7 +41,15 @@ async function fetchApplications(filters: AdminApplicationFilters) {
       ...(filters.jobPostTitle ? { jobPost: { title: { contains: filters.jobPostTitle, mode: 'insensitive' } } } : {}),
       ...appliedAtRangeFilter(filters),
     },
-    include: { jobPost: { select: { title: true, merchant: { select: { brandName: true } } } } },
+    include: {
+      jobPost: {
+        select: {
+          title: true,
+          merchant: { select: { brandName: true } },
+          jobPostStores: { include: { store: { select: { name: true } } } },
+        },
+      },
+    },
     orderBy: { appliedAt: 'desc' },
   });
 }
