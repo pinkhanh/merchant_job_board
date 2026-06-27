@@ -10,7 +10,17 @@ type NavItem = {
   icon?: React.ComponentType<{ className?: string }>;
 };
 
-export function Shell({ navItems, children }: { navItems: NavItem[]; children: React.ReactNode }) {
+type BrandInfo = { name: string; logoUrl?: string | null };
+
+export function Shell({
+  navItems,
+  children,
+  brandInfo,
+}: {
+  navItems: NavItem[];
+  children: React.ReactNode;
+  brandInfo?: BrandInfo;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -49,8 +59,24 @@ export function Shell({ navItems, children }: { navItems: NavItem[]; children: R
           )}
         </div>
       </header>
-      <aside className="fixed left-0 top-14 bottom-0 w-[220px] bg-white border-r border-border">
-        <nav className="pt-4">
+      <aside className="fixed left-0 top-14 bottom-0 w-[220px] bg-white border-r border-border flex flex-col">
+        {brandInfo && (
+          <div data-testid="brand-info" className="flex items-center gap-3 px-5 py-4 border-b border-border">
+            {brandInfo.logoUrl ? (
+              <img
+                src={brandInfo.logoUrl}
+                alt={brandInfo.name}
+                className="w-8 h-8 rounded object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded bg-primary-surface flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                {brandInfo.name[0]}
+              </div>
+            )}
+            <span className="text-sm font-semibold text-foreground leading-tight truncate">{brandInfo.name}</span>
+          </div>
+        )}
+        <nav className="pt-4 flex-1 overflow-y-auto">
           {navItems.map((item) => {
             const active = pathname === item.href;
             return (

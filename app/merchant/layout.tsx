@@ -6,6 +6,8 @@ import {
   UsersIcon,
   BuildingStorefrontIcon,
 } from '@heroicons/react/24/outline';
+import { getSession } from '@/lib/auth/getSession';
+import { getMerchantById } from '@/lib/services/adminMerchantService';
 
 const MERCHANT_NAV = [
   { href: '/merchant/dashboard', label: 'Dashboard', icon: Squares2x2Icon },
@@ -15,6 +17,12 @@ const MERCHANT_NAV = [
   { href: '/merchant/profile', label: 'Hồ sơ thương hiệu', icon: BuildingStorefrontIcon },
 ];
 
-export default function MerchantLayout({ children }: { children: React.ReactNode }) {
-  return <Shell navItems={MERCHANT_NAV}>{children}</Shell>;
+export default async function MerchantLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession();
+  let brandInfo: { name: string; logoUrl?: string | null } | undefined;
+  if (session?.merchantId) {
+    const merchant = await getMerchantById(session.merchantId);
+    if (merchant) brandInfo = { name: merchant.brandName, logoUrl: merchant.logoUrl };
+  }
+  return <Shell navItems={MERCHANT_NAV} brandInfo={brandInfo}>{children}</Shell>;
 }

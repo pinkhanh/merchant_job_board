@@ -62,6 +62,22 @@ describe('Shell', () => {
     expect(screen.getByText('Test')).toBeInTheDocument();
     expect(document.querySelector('svg')).not.toBeNull();
   });
+
+  it('renders brand info block when brandInfo prop is provided', () => {
+    render(
+      <Shell navItems={[]} brandInfo={{ name: 'Katinat', logoUrl: null }}>
+        <div />
+      </Shell>
+    );
+    expect(screen.getByText('Katinat')).toBeInTheDocument();
+  });
+
+  it('does not render brand block when brandInfo is not provided', () => {
+    render(
+      <Shell navItems={[]}><div /></Shell>
+    );
+    expect(screen.queryByTestId('brand-info')).not.toBeInTheDocument();
+  });
 });
 
 describe('Shell account menu / logout', () => {
