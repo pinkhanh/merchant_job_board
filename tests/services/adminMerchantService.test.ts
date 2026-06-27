@@ -1,12 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Prisma } from '@prisma/client';
 
+let mockMerchantCreate: any;
+let mockUserCreate: any;
+
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    $transaction: vi.fn((fn: any) => fn({
-      merchant: { create: vi.fn().mockResolvedValue({ id: 'm1', brandName: 'Jollibee' }) },
-      user: { create: vi.fn().mockResolvedValue({ id: 'u1', username: 'jollibee_admin', role: 'merchant', merchantId: 'm1', isActive: true, createdAt: new Date() }) },
-    })),
+    $transaction: vi.fn((fn: any) => {
+      const tx = {
+        merchant: { create: vi.fn().mockResolvedValue({ id: 'm1', brandName: 'Jollibee' }) },
+        user: { create: vi.fn().mockResolvedValue({ id: 'u1', username: 'jollibee_admin', role: 'merchant', merchantId: 'm1', isActive: true, createdAt: new Date() }) },
+      };
+      mockMerchantCreate = tx.merchant.create;
+      mockUserCreate = tx.user.create;
+      return fn(tx);
+    }),
     merchant: { findMany: vi.fn(), update: vi.fn(), findUnique: vi.fn() },
     user: {
       findMany: vi.fn(),
@@ -74,6 +82,26 @@ describe('adminMerchantService', () => {
     });
 
     expect(result.user).not.toHaveProperty('passwordHash');
+  });
+
+  it('createMerchant stores optional description and hotline', async () => {
+    (mockMerchantCreate as any).mockResolvedValue({ id: 'm1', brandName: 'Jollibee', industry: 'F&B' });
+    (mockUserCreate as any).mockResolvedValue({ id: 'u1', username: 'jollibee_admin' });
+
+    await createMerchant({
+      brandName: 'Jollibee',
+      industry: 'F&B',
+      description: 'Mô tả',
+      hotline: '1800 1234',
+      username: 'jollibee_admin',
+      password: 'password123',
+    });
+
+    expect(mockMerchantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ description: 'Mô tả', hotline: '1800 1234' }),
+      })
+    );
   });
 
   it('activates and deactivates a merchant', async () => {
