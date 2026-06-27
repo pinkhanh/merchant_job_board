@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Pagination } from '@/components/Pagination';
 import { PAGE_SIZE } from '@/lib/constants/pagination';
 import { useToast } from '@/components/Toast';
+import { ActionsDropdown } from '@/components/ActionsDropdown';
 
 type JobPost = { id: string; title: string; status: string; deadline: string };
 
@@ -97,25 +98,18 @@ export default function ManageJobPostsPage() {
               </td>
               <td className="px-4 py-3 text-text-secondary">{post.deadline}</td>
               <td className="px-4 py-3">
-                {loadingId === post.id ? (
-                  <span className="text-sm text-text-secondary">Đang xử lý...</span>
-                ) : (
-                  <div className="flex gap-2">
-                    {post.status === 'live' && (
-                      <button onClick={() => handleAction(post.id, 'pause')} className="text-primary text-sm hover:underline">
-                        Tạm dừng
-                      </button>
-                    )}
-                    {post.status === 'paused' && (
-                      <button onClick={() => handleAction(post.id, 'reactivate')} className="text-primary text-sm hover:underline">
-                        Kích hoạt lại
-                      </button>
-                    )}
-                    <button onClick={() => handleAction(post.id, 'delete')} className="text-status-off-text text-sm hover:underline">
-                      Xoá
-                    </button>
-                  </div>
-                )}
+                <ActionsDropdown
+                  isLoading={loadingId === post.id}
+                  items={[
+                    ...(post.status === 'live'
+                      ? [{ label: 'Tạm dừng', onClick: () => handleAction(post.id, 'pause') }]
+                      : []),
+                    ...(post.status === 'paused'
+                      ? [{ label: 'Kích hoạt lại', onClick: () => handleAction(post.id, 'reactivate') }]
+                      : []),
+                    { label: 'Xoá', onClick: () => handleAction(post.id, 'delete'), variant: 'danger' as const },
+                  ]}
+                />
               </td>
             </tr>
           ))}

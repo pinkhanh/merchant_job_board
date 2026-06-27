@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useToast } from '@/components/Toast';
+import { ActionsDropdown } from '@/components/ActionsDropdown';
 
 type JobPost = { id: string; title: string; status: string; merchant: { brandName: string } };
 
@@ -79,20 +80,23 @@ export default function AdminJobsPage() {
                   {STATUS_LABEL[post.status] ?? post.status}
                 </span>
               </td>
-              <td className="px-4 py-3 flex gap-2">
-                <input
-                  placeholder="Lý do tạm dừng"
-                  value={reasonDraft[post.id] ?? ''}
-                  onChange={(e) => setReasonDraft((d) => ({ ...d, [post.id]: e.target.value }))}
-                  className="border border-border rounded-md px-3 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10 bg-white"
+              <td className="px-4 py-3 flex gap-2 items-center">
+                {post.status !== 'paused' && (
+                  <input
+                    placeholder="Lý do tạm dừng"
+                    value={reasonDraft[post.id] ?? ''}
+                    onChange={(e) => setReasonDraft((d) => ({ ...d, [post.id]: e.target.value }))}
+                    className="border border-border rounded-md px-3 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10 bg-white"
+                  />
+                )}
+                <ActionsDropdown
+                  isLoading={loadingId === post.id}
+                  items={[
+                    ...(post.status !== 'paused'
+                      ? [{ label: 'Tạm dừng', onClick: () => handlePause(post.id) }]
+                      : []),
+                  ]}
                 />
-                <button
-                  onClick={() => handlePause(post.id)}
-                  disabled={loadingId === post.id}
-                  className="bg-status-off-text text-white rounded-md px-3 py-1.5 text-sm font-semibold disabled:opacity-60"
-                >
-                  {loadingId === post.id ? 'Đang xử lý...' : 'Tạm dừng'}
-                </button>
               </td>
             </tr>
           ))}

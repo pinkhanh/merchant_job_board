@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useToast } from '@/components/Toast';
+import { ActionsDropdown } from '@/components/ActionsDropdown';
 
 type Merchant = {
   id: string;
@@ -54,6 +55,7 @@ export default function AdminMerchantsPage() {
             <th className="px-4 py-3 text-left">Số cửa hàng</th>
             <th className="px-4 py-3 text-left">Tổng tin đăng</th>
             <th className="px-4 py-3 text-left">Trạng thái</th>
+            <th className="px-4 py-3 text-left">Hành động</th>
           </tr>
         </thead>
         <tbody>
@@ -67,17 +69,25 @@ export default function AdminMerchantsPage() {
               <td className="px-4 py-3">{m._count.stores}</td>
               <td className="px-4 py-3">{m._count.jobPosts}</td>
               <td className="px-4 py-3">
-                <button
-                  onClick={() => toggleStatus(m.id, m.status)}
-                  disabled={loadingId === m.id}
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded-sm disabled:opacity-60 ${
-                    m.status === 'active'
-                      ? 'bg-status-active-bg text-status-active-text'
-                      : 'bg-status-off-bg text-status-off-text'
-                  }`}
-                >
-                  {loadingId === m.id ? '...' : m.status === 'active' ? 'Hoạt động' : 'Tạm ngưng'}
-                </button>
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${
+                  m.status === 'active'
+                    ? 'bg-status-active-bg text-status-active-text'
+                    : 'bg-status-off-bg text-status-off-text'
+                }`}>
+                  {m.status === 'active' ? 'Hoạt động' : 'Tạm ngưng'}
+                </span>
+              </td>
+              <td className="px-4 py-3">
+                <ActionsDropdown
+                  isLoading={loadingId === m.id}
+                  items={[
+                    {
+                      label: m.status === 'active' ? 'Tạm ngưng' : 'Kích hoạt',
+                      onClick: () => toggleStatus(m.id, m.status),
+                      variant: m.status === 'active' ? 'danger' : 'default',
+                    },
+                  ]}
+                />
               </td>
             </tr>
           ))}
