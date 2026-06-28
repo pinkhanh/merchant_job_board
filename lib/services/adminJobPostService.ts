@@ -26,7 +26,7 @@ export async function listAllJobPosts(filters: AdminJobPostFilters = {}) {
         ? {
             createdAt: {
               ...(filters.createdFrom ? { gte: new Date(filters.createdFrom) } : {}),
-              ...(filters.createdTo ? { lte: new Date(filters.createdTo) } : {}),
+              ...(filters.createdTo ? { lt: new Date(new Date(filters.createdTo).getTime() + 86400000) } : {}),
             },
           }
         : {}),

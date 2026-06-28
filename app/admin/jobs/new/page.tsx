@@ -125,9 +125,9 @@ export default function AdminJobsNewPage() {
       const params = new URLSearchParams({ city, district, page: String(page) });
       const res = await fetch(`/api/admin/merchants/${state.merchantId}/stores?${params.toString()}`);
       const body = await res.json();
-      ids.push(...body.items.map((s: { id: string }) => s.id));
       total = body.total;
       if (!body.items?.length) break;
+      ids.push(...body.items.map((s: { id: string }) => s.id));
       page++;
     }
     return ids;
@@ -186,7 +186,13 @@ export default function AdminJobsNewPage() {
         showToast('success', 'Đăng tin tuyển dụng thành công!');
         router.push('/admin/jobs');
       } else {
-        showToast('error', 'Đăng tin thất bại, vui lòng thử lại');
+        let message = 'Đăng tin thất bại';
+        try {
+          const body = await res.json();
+          if (body?.error) message = typeof body.error === 'string' ? body.error : 'Đăng tin thất bại';
+        } catch { /* ignore JSON parse error */ }
+        showToast('error', message);
+        return;
       }
     } catch {
       showToast('error', 'Đăng tin thất bại, vui lòng thử lại');

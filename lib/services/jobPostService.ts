@@ -88,7 +88,7 @@ export async function listJobPosts(merchantId: string, filters: JobPostFilters =
       ? {
           createdAt: {
             ...(filters.createdFrom ? { gte: new Date(filters.createdFrom) } : {}),
-            ...(filters.createdTo ? { lte: new Date(filters.createdTo) } : {}),
+            ...(filters.createdTo ? { lt: new Date(new Date(filters.createdTo).getTime() + 86400000) } : {}),
           },
         }
       : {}),

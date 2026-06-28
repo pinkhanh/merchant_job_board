@@ -87,12 +87,12 @@ describe('listJobPosts filters', () => {
     );
   });
 
-  it('passes createdTo filter as lte date', async () => {
+  it('passes createdTo filter as lt next-day date (inclusive end day)', async () => {
     await listJobPosts('m1', { createdTo: '2026-06-30' });
     expect(mockFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          createdAt: expect.objectContaining({ lte: new Date('2026-06-30') }),
+          createdAt: expect.objectContaining({ lt: new Date(new Date('2026-06-30').getTime() + 86400000) }),
         }),
       })
     );
