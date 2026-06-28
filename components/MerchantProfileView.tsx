@@ -9,7 +9,7 @@ export type ProfileStore = {
   ward?: string | null;
   district?: string | null;
   city?: string | null;
-  openingHours?: string | null;
+  openingHours?: string | object | null;
   createdAt?: string;
 };
 
@@ -210,7 +210,7 @@ export function MerchantProfileView({
                   <p className="text-sm text-text-secondary mt-0.5">
                     {[store.streetAddress, store.ward, store.district, store.city].filter(Boolean).join(', ')}
                   </p>
-                  {store.openingHours && (
+                  {typeof store.openingHours === 'string' && store.openingHours && (
                     <p className="text-sm text-text-secondary mt-0.5">
                       Giờ làm việc: {store.openingHours}
                     </p>
