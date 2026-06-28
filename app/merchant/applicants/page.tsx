@@ -50,14 +50,14 @@ export default function ApplicantsPage() {
   const [exportLogs, setExportLogs] = useState<ExportLog[]>([]);
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
 
-  const [jobPostId, setJobPostId] = useState('');
+  const [jobPostTitle, setJobPostTitle] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
   const [applicantName, setApplicantName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
   useEffect(() => {
-    fetch('/api/jobs')
+    fetch('/api/jobs?status=live')
       .then((res) => res.json())
       .then((body) => setJobOptions(body.items ?? []));
   }, []);
@@ -70,14 +70,14 @@ export default function ApplicantsPage() {
   }, []);
 
   useEffect(() => {
-    const query = buildQuery({ page: String(page), jobPostId, appliedFrom, appliedTo, applicantName, phoneNumber });
+    const query = buildQuery({ page: String(page), jobPostTitle, appliedFrom, appliedTo, applicantName, phoneNumber });
     fetch(`/api/applications?${query}`)
       .then((res) => res.json())
       .then((body) => {
         setApplications(body.items);
         setTotal(body.total);
       });
-  }, [page, jobPostId, appliedFrom, appliedTo, applicantName, phoneNumber]);
+  }, [page, jobPostTitle, appliedFrom, appliedTo, applicantName, phoneNumber]);
 
   async function handleReveal(id: string) {
     const res = await fetch(`/api/applications/${id}/reveal-phone`, { method: 'POST' });
@@ -93,7 +93,7 @@ export default function ApplicantsPage() {
   }
 
   async function handleExport() {
-    const query = buildQuery({ jobPostId, appliedFrom, appliedTo, applicantName, phoneNumber });
+    const query = buildQuery({ jobPostTitle, appliedFrom, appliedTo, applicantName, phoneNumber });
     const res = await fetch(`/api/applications/export?${query}`);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -111,13 +111,14 @@ export default function ApplicantsPage() {
         <label className="flex flex-col gap-1 text-xs font-medium flex-1">
           Tên vị trí
           <select
-            value={jobPostId}
-            onChange={(e) => handleFilterChange(setJobPostId)(e.target.value)}
+            aria-label="Vị trí"
+            value={jobPostTitle}
+            onChange={(e) => handleFilterChange(setJobPostTitle)(e.target.value)}
             className="border border-border rounded-md px-3 py-2 text-sm bg-white"
           >
             <option value="">Tất cả vị trí</option>
             {jobOptions.map((j) => (
-              <option key={j.id} value={j.id}>
+              <option key={j.id} value={j.title}>
                 {j.title}
               </option>
             ))}
@@ -126,6 +127,7 @@ export default function ApplicantsPage() {
         <label className="flex flex-col gap-1 text-xs font-medium">
           Từ ngày
           <input
+            aria-label="Từ ngày"
             type="date"
             value={appliedFrom}
             onChange={(e) => handleFilterChange(setAppliedFrom)(e.target.value)}
@@ -135,6 +137,7 @@ export default function ApplicantsPage() {
         <label className="flex flex-col gap-1 text-xs font-medium">
           Đến ngày
           <input
+            aria-label="Đến ngày"
             type="date"
             value={appliedTo}
             onChange={(e) => handleFilterChange(setAppliedTo)(e.target.value)}
