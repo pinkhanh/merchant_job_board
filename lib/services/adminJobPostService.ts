@@ -1,3 +1,4 @@
+import { EmploymentType } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { createJobPostSchema, PastDeadlineError } from './jobPostService';
 
@@ -5,7 +6,7 @@ export type AdminJobPostFilters = {
   merchantId?: string;
   status?: 'draft' | 'live' | 'paused' | 'expired';
   industry?: string;
-  employmentType?: string;
+  employmentType?: EmploymentType;
   jobCategory?: string;
   storeId?: string;
   createdFrom?: string;

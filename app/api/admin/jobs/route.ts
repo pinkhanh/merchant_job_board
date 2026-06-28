@@ -1,3 +1,4 @@
+import { EmploymentType } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { getSession } from '@/lib/auth/getSession';
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
     merchantId: searchParams.get('merchantId') ?? undefined,
     status: (searchParams.get('status') as any) ?? undefined,
     industry: searchParams.get('industry') ?? undefined,
-    employmentType: searchParams.get('employmentType') ?? undefined,
+    employmentType: (searchParams.get('employmentType') as EmploymentType) ?? undefined,
     jobCategory: searchParams.get('jobCategory') ?? undefined,
     storeId: searchParams.get('storeId') ?? undefined,
     createdFrom: searchParams.get('createdFrom') ?? undefined,
