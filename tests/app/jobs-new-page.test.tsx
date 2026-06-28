@@ -81,6 +81,7 @@ describe('JobWizardPage', () => {
 
   async function goToStep3() {
     await goToStep2();
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên bán hàng' } });
     fireEvent.click(screen.getByText('Tạo mô tả với AI'));
     await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
   }
@@ -96,18 +97,18 @@ describe('JobWizardPage', () => {
     expect(screen.getByText('Quay lại')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Quay lại'));
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
-    expect((screen.getByLabelText('Trụ Sở Chính') as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByLabelText('Trụ Sở Chính')).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('navigates Step 2 -> Step 3 -> back to Step 2 preserving entered title', async () => {
     await goToStep2();
-    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên bán hàng' } });
     fireEvent.click(screen.getByText('Tạo mô tả với AI'));
     await waitFor(() => screen.getByText('Quay lại'));
 
     fireEvent.click(screen.getByText('Quay lại'));
-    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
-    expect((screen.getByLabelText('Tên vị trí tuyển dụng') as HTMLInputElement).value).toBe('Nhân viên bán hàng');
+    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }));
+    expect((screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }) as HTMLInputElement).value).toBe('Nhân viên bán hàng');
   });
 
   it('shows a Back button on Step 4 that returns to Step 3', async () => {
@@ -195,9 +196,9 @@ describe('JobWizardPage', () => {
     });
 
     fireEvent.click(screen.getByText('Tiếp theo'));
-    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
+    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }));
 
-    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên khu vực' } });
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên khu vực' } });
     fireEvent.click(screen.getByText('Tạo mô tả với AI'));
     await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
     fireEvent.click(screen.getByText('Tiếp theo'));
@@ -253,7 +254,7 @@ describe('JobWizardPage', () => {
 
   it('sends salaryMin, salaryMax and salaryType in the publish payload', async () => {
     await goToStep2();
-    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên bán hàng' } });
     fireEvent.change(screen.getByLabelText('Lương tối thiểu'), { target: { value: '5000000' } });
     fireEvent.change(screen.getByLabelText('Lương tối đa'), { target: { value: '8000000' } });
     fireEvent.click(screen.getByText('Theo tháng'));
