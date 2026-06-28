@@ -46,6 +46,26 @@ describe('POST /api/jobs', () => {
   });
 });
 
+describe('createJobPostSchema', () => {
+  it('accepts full_time employment type', async () => {
+    // Unmock to test the real schema
+    vi.doUnmock('@/lib/services/jobPostService');
+    const { createJobPostSchema } = await import('@/lib/services/jobPostService');
+
+    const body = {
+      storeIds: ['00000000-0000-0000-0000-000000000001'],
+      title: 'Quản lý ca',
+      industry: 'F&B',
+      employmentType: 'full_time',
+      salaryType: 'monthly',
+      schedule: { days: ['mon'], start: '08:00', end: '17:00' },
+      deadline: new Date(Date.now() + 86400000 * 30).toISOString(),
+      status: 'live',
+    };
+    expect(() => createJobPostSchema.parse(body)).not.toThrow();
+  });
+});
+
 describe('GET /api/jobs', () => {
   beforeEach(() => vi.clearAllMocks());
 

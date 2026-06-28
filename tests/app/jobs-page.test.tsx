@@ -115,4 +115,24 @@ describe('JobsPage', () => {
       expect(screen.getByText(/1 việc làm/)).toBeInTheDocument();
     });
   });
+
+  it('shows "2 địa điểm" for multi-store jobs instead of a single store name', async () => {
+    const multiStoreResponse = {
+      ...sampleResponse,
+      jobs: [
+        {
+          ...sampleResponse.jobs[0],
+          jobPostStores: [
+            { store: { name: 'Katinat Q1', district: 'Quận 1', city: 'HCM' } },
+            { store: { name: 'Katinat Q3', district: 'Quận 3', city: 'HCM' } },
+          ],
+        },
+      ],
+    };
+    (global.fetch as any).mockResolvedValue({ ok: true, json: async () => multiStoreResponse });
+    render(<JobsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('2 địa điểm')).toBeInTheDocument();
+    });
+  });
 });

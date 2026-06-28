@@ -195,7 +195,14 @@ export default function JobWizardPage() {
         showToast('success', 'Đăng tin tuyển dụng thành công!');
         router.push('/merchant/jobs');
       } else {
-        showToast('error', 'Đăng tin thất bại, vui lòng thử lại');
+        let message = 'Đăng tin thất bại';
+        try {
+          const body = await res.json();
+          if (body?.error) message = body.error;
+        } catch {
+          // ignore JSON parse error
+        }
+        showToast('error', message);
       }
     } catch {
       showToast('error', 'Đăng tin thất bại, vui lòng thử lại');
@@ -314,24 +321,41 @@ export default function JobWizardPage() {
                 district={storeSearch.district}
                 onDistrictChange={storeSearch.setDistrict}
               />
+              <p className="text-sm text-text-secondary mb-2">
+                {storeSearch.total > 0
+                  ? `Hiển thị ${storeSearch.items.length} / ${storeSearch.total} cửa hàng`
+                  : 'Không tìm thấy cửa hàng'}
+              </p>
               <div className="flex flex-col gap-2 mb-4">
                 {storeSearch.items.map((store) => (
-                  <label
+                  <button
                     key={store.id}
-                    htmlFor={store.id}
-                    className="flex items-center gap-2 border border-border rounded-md px-4 py-3 cursor-pointer hover:border-primary"
+                    type="button"
+                    onClick={() => toggleStore(store.id)}
+                    aria-label={store.name}
+                    aria-pressed={state.storeIds.includes(store.id)}
+                    className={`flex items-start gap-3 px-4 py-3 rounded-lg border text-left transition-colors ${
+                      state.storeIds.includes(store.id)
+                        ? 'border-primary bg-primary-surface'
+                        : 'border-border bg-white hover:border-primary/50'
+                    }`}
                   >
-                    <input
-                      id={store.id}
-                      type="checkbox"
-                      checked={state.storeIds.includes(store.id)}
-                      onChange={() => toggleStore(store.id)}
-                    />
-                    <span className="flex-1">{store.name}</span>
-                    {store.district && (
-                      <span className="text-xs text-text-secondary">{store.district}{store.city ? `, ${store.city}` : ''}</span>
-                    )}
-                  </label>
+                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                      state.storeIds.includes(store.id) ? 'bg-primary border-primary' : 'border-border'
+                    }`}>
+                      {state.storeIds.includes(store.id) && (
+                        <CheckIcon className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{store.name}</p>
+                      <p className="text-xs text-text-secondary mt-0.5">
+                        {[store.streetAddress, store.ward, store.district, store.city]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </p>
+                    </div>
+                  </button>
                 ))}
                 {storeSearch.items.length === 0 && (
                   <p className="text-sm text-text-secondary py-4 text-center">
@@ -388,6 +412,11 @@ export default function JobWizardPage() {
           )}
 
           {stepError && <p className="text-status-off-text text-sm mb-4">{stepError}</p>}
+          {state.storeIds.length > 0 && (
+            <p className="text-sm text-primary font-semibold mb-2">
+              Đã chọn {state.storeIds.length} cửa hàng
+            </p>
+          )}
           <div className="flex justify-end">
             <button onClick={goToStep2} className={primaryButton}>
               Tiếp theo

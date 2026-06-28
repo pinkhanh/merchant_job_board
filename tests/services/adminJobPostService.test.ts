@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    jobPost: { findMany: vi.fn(), update: vi.fn() },
+    jobPost: { findMany: vi.fn(), update: vi.fn(), create: vi.fn() },
     jobPostModerationLog: { create: vi.fn() },
   },
 }));
@@ -12,7 +12,9 @@ import {
   moderateJobPost,
   MissingReasonError,
   InvalidActionError,
+  createJobPostAsAdmin,
 } from '@/lib/services/adminJobPostService';
+import { PastDeadlineError } from '@/lib/services/jobPostService';
 import { prisma } from '@/lib/db/prisma';
 
 describe('adminJobPostService', () => {
@@ -25,7 +27,10 @@ describe('adminJobPostService', () => {
 
     expect(prisma.jobPost.findMany).toHaveBeenCalledWith({
       where: { deletedAt: null },
-      include: { merchant: { select: { brandName: true } } },
+      include: {
+        merchant: { select: { brandName: true } },
+        jobPostStores: { include: { store: { select: { name: true } } } },
+      },
       orderBy: { createdAt: 'desc' },
     });
     expect(result).toEqual([{ id: 'jp1' }]);
@@ -60,5 +65,40 @@ describe('adminJobPostService', () => {
 
     expect(prisma.jobPost.update).not.toHaveBeenCalled();
     expect(prisma.jobPostModerationLog.create).not.toHaveBeenCalled();
+  });
+
+  it('passes employmentType filter to prisma', async () => {
+    await listAllJobPosts({ employmentType: 'full_time' });
+    expect(prisma.jobPost.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ employmentType: 'full_time' }),
+      })
+    );
+  });
+
+  const validJobPostInput = {
+    storeIds: ['00000000-0000-0000-0000-000000000001'],
+    title: 'Nhân viên pha chế',
+    industry: 'F&B',
+    employmentType: 'part_time' as const,
+    salaryType: 'hourly' as const,
+    schedule: { days: ['Mon'], start: '08:00', end: '17:00' },
+    deadline: new Date(Date.now() + 86400000 * 30),
+  };
+
+  it('createJobPostAsAdmin calls prisma.create with merchantId and validated data', async () => {
+    (prisma.jobPost.create as any).mockResolvedValue({ id: 'jp-new' });
+    const result = await createJobPostAsAdmin('merchant-1', validJobPostInput);
+    expect(prisma.jobPost.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ merchantId: 'merchant-1', title: 'Nhân viên pha chế' }) })
+    );
+    expect(result).toEqual({ id: 'jp-new' });
+  });
+
+  it('createJobPostAsAdmin throws PastDeadlineError for past deadline', async () => {
+    await expect(
+      createJobPostAsAdmin('merchant-1', { ...validJobPostInput, deadline: new Date(Date.now() - 1000) })
+    ).rejects.toBeInstanceOf(PastDeadlineError);
+    expect(prisma.jobPost.create).not.toHaveBeenCalled();
   });
 });

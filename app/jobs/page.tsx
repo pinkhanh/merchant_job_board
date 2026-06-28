@@ -223,7 +223,6 @@ function JobsPageContent() {
       ) : (
         <div className="flex flex-col gap-3">
           {jobs.map((job) => {
-            const store = job.jobPostStores[0]?.store;
             return (
               <a
                 key={job.id}
@@ -239,11 +238,13 @@ function JobsPageContent() {
                   <p className="text-worker-primary font-bold text-sm mb-1">
                     {formatSalary(job.salaryMin, job.salaryMax, job.salaryType)}
                   </p>
-                  {store && (
-                    <p className="text-xs text-worker-text-secondary truncate">
-                      {store.name} · {store.district}
-                    </p>
-                  )}
+                  <p className="text-xs text-worker-text-secondary truncate">
+                    {job.jobPostStores.length > 1
+                      ? `${job.jobPostStores.length} địa điểm`
+                      : job.jobPostStores[0]?.store
+                      ? `${job.jobPostStores[0].store.name} · ${job.jobPostStores[0].store.district}`
+                      : ''}
+                  </p>
                 </div>
                 <span className="absolute top-3 right-3 bg-worker-accent text-worker-primary text-[11px] font-semibold px-2 py-0.5 rounded-worker-pill whitespace-nowrap">
                   {EMPLOYMENT_TYPE_LABELS[job.employmentType] ?? job.employmentType}

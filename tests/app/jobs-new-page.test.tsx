@@ -76,11 +76,12 @@ describe('JobWizardPage', () => {
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
     fireEvent.click(screen.getByLabelText('Trụ Sở Chính'));
     fireEvent.click(screen.getByText('Tiếp theo'));
-    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
+    await waitFor(() => screen.getByText('Tạo mô tả với AI'));
   }
 
   async function goToStep3() {
     await goToStep2();
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên bán hàng' } });
     fireEvent.click(screen.getByText('Tạo mô tả với AI'));
     await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
   }
@@ -96,18 +97,18 @@ describe('JobWizardPage', () => {
     expect(screen.getByText('Quay lại')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Quay lại'));
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
-    expect((screen.getByLabelText('Trụ Sở Chính') as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByLabelText('Trụ Sở Chính')).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('navigates Step 2 -> Step 3 -> back to Step 2 preserving entered title', async () => {
     await goToStep2();
-    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên bán hàng' } });
     fireEvent.click(screen.getByText('Tạo mô tả với AI'));
     await waitFor(() => screen.getByText('Quay lại'));
 
     fireEvent.click(screen.getByText('Quay lại'));
-    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
-    expect((screen.getByLabelText('Tên vị trí tuyển dụng') as HTMLInputElement).value).toBe('Nhân viên bán hàng');
+    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }));
+    expect((screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }) as HTMLInputElement).value).toBe('Nhân viên bán hàng');
   });
 
   it('shows a Back button on Step 4 that returns to Step 3', async () => {
@@ -195,9 +196,9 @@ describe('JobWizardPage', () => {
     });
 
     fireEvent.click(screen.getByText('Tiếp theo'));
-    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng'));
+    await waitFor(() => screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }));
 
-    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên khu vực' } });
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên khu vực' } });
     fireEvent.click(screen.getByText('Tạo mô tả với AI'));
     await waitFor(() => screen.getByText('Mô tả công việc (AI đề xuất)'));
     fireEvent.click(screen.getByText('Tiếp theo'));
@@ -245,7 +246,7 @@ describe('JobWizardPage', () => {
     fireEvent.click(screen.getByLabelText('Lựa chọn địa điểm làm việc'));
 
     await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
-    expect((screen.getByLabelText('Trụ Sở Chính') as HTMLInputElement).checked).toBe(false);
+    expect(screen.getByLabelText('Trụ Sở Chính')).toHaveAttribute('aria-pressed', 'false');
 
     fireEvent.click(screen.getByText('Tiếp theo'));
     expect(screen.getByText('Vui lòng chọn ít nhất 1 cửa hàng')).toBeInTheDocument();
@@ -253,7 +254,7 @@ describe('JobWizardPage', () => {
 
   it('sends salaryMin, salaryMax and salaryType in the publish payload', async () => {
     await goToStep2();
-    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng'), { target: { value: 'Nhân viên bán hàng' } });
+    fireEvent.change(screen.getByLabelText('Tên vị trí tuyển dụng', { exact: false }), { target: { value: 'Nhân viên bán hàng' } });
     fireEvent.change(screen.getByLabelText('Lương tối thiểu'), { target: { value: '5000000' } });
     fireEvent.change(screen.getByLabelText('Lương tối đa'), { target: { value: '8000000' } });
     fireEvent.click(screen.getByText('Theo tháng'));
@@ -275,5 +276,86 @@ describe('JobWizardPage', () => {
     expect(body.salaryMin).toBe(5000000);
     expect(body.salaryMax).toBe(8000000);
     expect(body.salaryType).toBe('monthly');
+  });
+
+  it('shows store count summary in step 1', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ items: [{ id: 's1', name: 'Katinat Q1', district: 'Quận 1', city: 'HCM', streetAddress: '1 Lê Lợi', ward: 'Phường 1' }], total: 3 }),
+    }) as any;
+    renderWithProviders(<JobWizardPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/3 cửa hàng/)).toBeInTheDocument();
+    });
+  });
+
+  it('shows full address on second line of store card', async () => {
+    global.fetch = vi.fn((url: string) => {
+      if (url.startsWith('/api/merchant/stores')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            items: [{
+              id: 's1',
+              name: 'Katinat Q1',
+              streetAddress: '1 Lê Lợi',
+              ward: 'Phường Bến Nghé',
+              district: 'Quận 1',
+              city: 'TP. Hồ Chí Minh',
+            }],
+            total: 1,
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    }) as any;
+    renderWithProviders(<JobWizardPage />);
+    await waitFor(() => screen.getByText('Katinat Q1'));
+    expect(screen.getByText('1 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh')).toBeInTheDocument();
+  });
+
+  it('shows specific API error message when posting fails', async () => {
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.startsWith('/api/merchant/stores')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ items: [{ id: 's1', name: 'Trụ Sở Chính' }], total: 1 }),
+        });
+      }
+      if (url === '/api/jobs') {
+        return Promise.resolve({
+          ok: false,
+          json: async () => ({ error: 'employmentType không hợp lệ' }),
+        });
+      }
+      if (url.includes('/api/ai/generate-description')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ roleOverview: 'Mô tả', requirements: 'Yêu cầu', benefits: 'Quyền lợi' }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+
+    renderWithProviders(<JobWizardPage />);
+    await waitFor(() => screen.getByLabelText('Trụ Sở Chính'));
+    fireEvent.click(screen.getByLabelText('Trụ Sở Chính'));
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByText('Tạo mô tả với AI'));
+
+    // Fill in title before generating description
+    const titleInputs = screen.getAllByRole('textbox');
+    fireEvent.change(titleInputs[0], { target: { value: 'Nhân viên bán hàng' } });
+
+    fireEvent.click(screen.getByText('Tạo mô tả với AI'));
+    await waitFor(() => screen.getByText(/Mô tả công việc/));
+
+    fireEvent.click(screen.getByText('Tiếp theo'));
+    await waitFor(() => screen.getByRole('button', { name: 'Đăng tin' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng tin' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('employmentType không hợp lệ')).toBeInTheDocument();
+    });
   });
 });

@@ -77,8 +77,6 @@ export default function JobDetailPage() {
 
   if (!job) return null;
 
-  const store = job.jobPostStores[0]?.store;
-
   return (
     <div className="pb-24">
       <div className="flex items-center justify-between px-4 py-3">
@@ -136,7 +134,11 @@ export default function JobDetailPage() {
             <span className="text-xs font-medium">Địa chỉ</span>
           </div>
           <p className="text-xs font-semibold leading-snug">
-            {store ? `${store.district}, ${store.city}` : '–'}
+            {job.jobPostStores.length > 1
+              ? `${job.jobPostStores.length} địa điểm`
+              : job.jobPostStores[0]?.store
+              ? `${job.jobPostStores[0].store.district}, ${job.jobPostStores[0].store.city}`
+              : '–'}
           </p>
         </div>
 
@@ -188,12 +190,14 @@ export default function JobDetailPage() {
           </section>
         )}
 
-        {store && (
+        {job.jobPostStores.length > 0 && (
           <section>
             <h2 className="font-bold text-sm mb-2">Địa điểm làm việc</h2>
-            <p className="text-sm text-worker-text-secondary">
-              {store.name} — {store.streetAddress}, {store.ward}, {store.district}, {store.city}
-            </p>
+            {job.jobPostStores.map(({ store }, i) => (
+              <p key={i} className="text-sm text-worker-text-secondary mb-1">
+                {store.name} — {[store.streetAddress, store.ward, store.district, store.city].filter(Boolean).join(', ')}
+              </p>
+            ))}
           </section>
         )}
       </div>

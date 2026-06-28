@@ -7,7 +7,7 @@ export const createJobPostSchema = z.object({
   title: z.string().min(1),
   industry: z.string().min(1),
   jobCategory: z.string().optional(),
-  employmentType: z.enum(['part_time', 'shift', 'seasonal']),
+  employmentType: z.enum(['part_time', 'shift', 'seasonal', 'full_time']),
   salaryMin: z.number().int().nonnegative().optional(),
   salaryMax: z.number().int().nonnegative().optional(),
   salaryType: z.enum(['hourly', 'shift', 'monthly', 'negotiable']),
@@ -67,6 +67,10 @@ export type JobPostFilters = {
   industry?: string;
   page?: number;
   all?: boolean;
+  employmentType?: string;
+  jobCategory?: string;
+  createdFrom?: string;
+  createdTo?: string;
 };
 
 export async function listJobPosts(merchantId: string, filters: JobPostFilters = {}) {
@@ -77,7 +81,17 @@ export async function listJobPosts(merchantId: string, filters: JobPostFilters =
     deletedAt: null,
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.industry ? { industry: filters.industry } : {}),
+    ...(filters.employmentType ? { employmentType: filters.employmentType } : {}),
+    ...(filters.jobCategory ? { jobCategory: filters.jobCategory } : {}),
     ...(filters.storeId ? { jobPostStores: { some: { storeId: filters.storeId } } } : {}),
+    ...((filters.createdFrom || filters.createdTo)
+      ? {
+          createdAt: {
+            ...(filters.createdFrom ? { gte: new Date(filters.createdFrom) } : {}),
+            ...(filters.createdTo ? { lt: new Date(new Date(filters.createdTo).getTime() + 86400000) } : {}),
+          },
+        }
+      : {}),
   };
 
   const [items, total] = await Promise.all([
