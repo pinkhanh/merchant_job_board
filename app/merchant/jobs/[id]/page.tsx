@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { Spinner } from '@/components/worker/ui/Spinner';
 
 type JobDetail = {
   id: string;
@@ -59,15 +60,50 @@ const card = 'bg-white border border-border rounded-lg shadow-card p-8';
 
 export default function MerchantJobDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [revealed, setRevealed] = useState<Record<string, string>>({});
+  const [isPausing, setIsPausing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [jobStatus, setJobStatus] = useState('');
 
   useEffect(() => {
     fetch(`/api/jobs/${id}`)
       .then((res) => res.json())
-      .then(setJob);
+      .then((data) => {
+        setJob(data);
+        setJobStatus(data.status);
+      });
   }, [id]);
+
+  async function handlePause() {
+    setIsPausing(true);
+    try {
+      const newStatus = jobStatus === 'live' ? 'paused' : 'live';
+      const res = await fetch(`/api/merchant/jobs/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) setJobStatus(newStatus);
+      else alert('Không thể cập nhật trạng thái. Vui lòng thử lại.');
+    } finally {
+      setIsPausing(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm('Xác nhận xóa tin tuyển dụng này?')) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/merchant/jobs/${id}`, { method: 'DELETE' });
+      if (res.ok) router.push('/merchant/jobs');
+      else alert('Không thể xóa tin. Vui lòng thử lại.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/applications?jobPostId=${id}`)
@@ -96,6 +132,25 @@ export default function MerchantJobDetailPage() {
           <span className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${STATUS_BADGE[job.status]}`}>
             {STATUS_LABEL[job.status] ?? job.status}
           </span>
+        </div>
+
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={handlePause}
+            disabled={isPausing}
+            className="px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-primary-surface disabled:opacity-60 flex items-center gap-2"
+          >
+            {isPausing && <Spinner />}
+            {jobStatus === 'live' ? 'Tạm dừng' : 'Tiếp tục đăng'}
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 disabled:opacity-60 flex items-center gap-2"
+          >
+            {isDeleting && <Spinner />}
+            Xóa
+          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">

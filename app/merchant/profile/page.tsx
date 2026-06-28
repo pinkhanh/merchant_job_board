@@ -94,7 +94,6 @@ export default function MerchantProfilePage() {
       readOnly={false}
       onSave={handleSave}
       isSaving={isSaving}
-      onSync={loadProfile}
       onDescriptionChange={(value) => setProfile({ ...profile, description: value })}
       onHotlineChange={(value) => setProfile({ ...profile, hotline: value })}
       categoryInput={categoryInput}

@@ -6,6 +6,13 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
+  // The select-brand page is reached during multi-brand login when only a
+  // temp_session cookie is set (no full session yet). Let it through so the
+  // brand-selection flow isn't immediately redirected to /login.
+  if (req.nextUrl.pathname === '/merchant/select-brand') {
+    return NextResponse.next();
+  }
+
   const token = req.cookies.get('session')?.value;
   const session = token ? await verifySessionToken(token) : null;
 

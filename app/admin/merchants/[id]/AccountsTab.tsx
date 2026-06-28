@@ -19,12 +19,42 @@ export default function AccountsTab({ merchantId }: { merchantId: string }) {
   const [addForm, setAddForm] = useState({ username: '', password: '', confirmPassword: '' });
   const [rowAction, setRowAction] = useState<Record<string, RowAction>>({});
   const [pwForm, setPwForm] = useState<Record<string, { password: string; confirm: string }>>({});
+  const [assignUsername, setAssignUsername] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
 
-  useEffect(() => {
+  function loadAccounts() {
     fetch(`/api/admin/merchants/${merchantId}/accounts`)
       .then((r) => r.json())
       .then(setAccounts);
+  }
+
+  useEffect(() => {
+    loadAccounts();
   }, [merchantId]);
+
+  async function handleAssignUser() {
+    if (!assignUsername.trim()) return;
+    setIsAssigning(true);
+    try {
+      const res = await fetch(`/api/admin/merchants/${merchantId}/accounts/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: assignUsername }),
+      });
+      if (res.ok) {
+        showToast('success', 'Đã gán tài khoản thành công');
+        setAssignUsername('');
+        loadAccounts();
+      } else {
+        const body = await res.json();
+        showToast('error', body.error ?? 'Gán tài khoản thất bại');
+      }
+    } catch {
+      showToast('error', 'Gán tài khoản thất bại, vui lòng thử lại');
+    } finally {
+      setIsAssigning(false);
+    }
+  }
 
   function toggleRowAction(accountId: string, type: 'password' | 'delete') {
     setRowAction((prev) => ({
@@ -341,6 +371,28 @@ export default function AccountsTab({ merchantId }: { merchantId: string }) {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-6 border-t border-border pt-4">
+        <h3 className="text-sm font-semibold mb-2">Gán tài khoản hiện có</h3>
+        <p className="text-xs text-text-secondary mb-3">
+          Nhập tên đăng nhập của tài khoản cần gán quyền quản lý cho merchant này.
+        </p>
+        <div className="flex gap-2">
+          <input
+            value={assignUsername}
+            onChange={(e) => setAssignUsername(e.target.value)}
+            placeholder="Tên đăng nhập..."
+            className="border border-border rounded-md px-3 py-2 text-sm flex-1 bg-white focus:border-primary focus:outline-none"
+          />
+          <button
+            onClick={handleAssignUser}
+            disabled={isAssigning || !assignUsername.trim()}
+            className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover disabled:opacity-60"
+          >
+            {isAssigning ? 'Đang gán...' : 'Gán'}
+          </button>
+        </div>
       </div>
     </div>
   );

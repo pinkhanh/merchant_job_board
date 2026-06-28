@@ -7,15 +7,22 @@ export type AdminApplicationFilters = {
   importStatus?: 'new' | 'imported';
   appliedFrom?: string;
   appliedTo?: string;
+  applicantName?: string;
+  phoneNumber?: string;
 };
 
 type SafeApplication = {
   id: string;
   applicantName: string;
   maskedPhone: string;
+  phoneNumber: string;
   importStatus: string;
   appliedAt: Date;
-  jobPost: { title: string; merchant: { brandName: string } };
+  jobPost: {
+    title: string;
+    merchant: { brandName: string };
+    jobPostStores: { store: { name: string } }[];
+  };
 };
 
 function appliedAtRangeFilter(filters: AdminApplicationFilters) {
@@ -35,9 +42,19 @@ async function fetchApplications(filters: AdminApplicationFilters) {
       ...(filters.importStatus ? { importStatus: filters.importStatus } : {}),
       ...(filters.merchantId ? { jobPost: { merchantId: filters.merchantId } } : {}),
       ...(filters.jobPostTitle ? { jobPost: { title: { contains: filters.jobPostTitle, mode: 'insensitive' } } } : {}),
+      ...(filters.applicantName ? { applicantName: { contains: filters.applicantName, mode: 'insensitive' } } : {}),
+      ...(filters.phoneNumber ? { phoneNumber: { contains: filters.phoneNumber } } : {}),
       ...appliedAtRangeFilter(filters),
     },
-    include: { jobPost: { select: { title: true, merchant: { select: { brandName: true } } } } },
+    include: {
+      jobPost: {
+        select: {
+          title: true,
+          merchant: { select: { brandName: true } },
+          jobPostStores: { select: { store: { select: { name: true } } } },
+        },
+      },
+    },
     orderBy: { appliedAt: 'desc' },
   });
 }
@@ -48,6 +65,7 @@ export async function listAllApplications(filters: AdminApplicationFilters = {})
     id: a.id,
     applicantName: a.applicantName,
     maskedPhone: a.phoneNumber.slice(0, 2) + '••••••' + a.phoneNumber.slice(8),
+    phoneNumber: a.phoneNumber,
     importStatus: a.importStatus,
     appliedAt: a.appliedAt,
     jobPost: a.jobPost,

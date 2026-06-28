@@ -1,12 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Prisma } from '@prisma/client';
 
+let mockMerchantCreate: any;
+let mockUserCreate: any;
+
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    $transaction: vi.fn((fn: any) => fn({
-      merchant: { create: vi.fn().mockResolvedValue({ id: 'm1', brandName: 'Jollibee' }) },
-      user: { create: vi.fn().mockResolvedValue({ id: 'u1', username: 'jollibee_admin', role: 'merchant', merchantId: 'm1', isActive: true, createdAt: new Date() }) },
-    })),
+    $transaction: vi.fn((fn: any) => {
+      const tx = {
+        merchant: { create: vi.fn().mockResolvedValue({ id: 'm1', brandName: 'Jollibee' }) },
+        user: { create: vi.fn().mockResolvedValue({ id: 'u1', username: 'jollibee_admin', role: 'merchant', merchantId: 'm1', isActive: true, createdAt: new Date() }) },
+        userMerchant: { create: vi.fn().mockResolvedValue({}) },
+      };
+      mockMerchantCreate = tx.merchant.create;
+      mockUserCreate = tx.user.create;
+      return fn(tx);
+    }),
     merchant: { findMany: vi.fn(), update: vi.fn(), findUnique: vi.fn() },
     user: {
       findMany: vi.fn(),
@@ -15,6 +24,10 @@ vi.mock('@/lib/db/prisma', () => ({
       delete: vi.fn(),
       count: vi.fn(),
       findFirst: vi.fn(),
+    },
+    userMerchant: {
+      findUnique: vi.fn(),
+      upsert: vi.fn().mockResolvedValue({}),
     },
   },
 }));
@@ -29,8 +42,11 @@ import {
   createMerchantAccount,
   updateMerchantAccount,
   deleteMerchantAccount,
+  assignUserToMerchant,
   UsernameConflictError,
   LastAccountError,
+  UserNotFoundError,
+  UserAlreadyAssignedError,
 } from '@/lib/services/adminMerchantService';
 import { prisma } from '@/lib/db/prisma';
 
@@ -74,6 +90,72 @@ describe('adminMerchantService', () => {
     });
 
     expect(result.user).not.toHaveProperty('passwordHash');
+  });
+
+  it('createMerchant stores optional description and hotline', async () => {
+    (mockMerchantCreate as any).mockResolvedValue({ id: 'm1', brandName: 'Jollibee', industry: 'F&B' });
+    (mockUserCreate as any).mockResolvedValue({ id: 'u1', username: 'jollibee_admin' });
+
+    await createMerchant({
+      brandName: 'Jollibee',
+      industry: 'F&B',
+      description: 'Mô tả',
+      hotline: '1800 1234',
+      username: 'jollibee_admin',
+      password: 'password123',
+    });
+
+    expect(mockMerchantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ description: 'Mô tả', hotline: '1800 1234' }),
+      })
+    );
+  });
+
+  it('createMerchant passes logoUrl and bannerUrl to merchant.create()', async () => {
+    (mockMerchantCreate as any).mockResolvedValue({ id: 'm1', brandName: 'Jollibee', industry: 'F&B' });
+    (mockUserCreate as any).mockResolvedValue({ id: 'u1', username: 'jollibee_admin' });
+
+    await createMerchant({
+      brandName: 'Jollibee',
+      industry: 'F&B',
+      logoUrl: 'https://example.com/logo.png',
+      bannerUrl: 'https://example.com/banner.jpg',
+      username: 'jollibee_admin',
+      password: 'password123',
+    });
+
+    expect(mockMerchantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          logoUrl: 'https://example.com/logo.png',
+          bannerUrl: 'https://example.com/banner.jpg',
+        }),
+      })
+    );
+  });
+
+  it('createMerchant transforms empty string logoUrl and bannerUrl to undefined', async () => {
+    (mockMerchantCreate as any).mockResolvedValue({ id: 'm1', brandName: 'Jollibee', industry: 'F&B' });
+    (mockUserCreate as any).mockResolvedValue({ id: 'u1', username: 'jollibee_admin' });
+
+    await createMerchant({
+      brandName: 'Jollibee',
+      industry: 'F&B',
+      logoUrl: '',
+      bannerUrl: '',
+      username: 'jollibee_admin',
+      password: 'password123',
+    });
+
+    expect(mockMerchantCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          logoUrl: undefined,
+          bannerUrl: undefined,
+        }),
+      })
+    );
   });
 
   it('activates and deactivates a merchant', async () => {
@@ -236,5 +318,44 @@ describe('adminMerchantService', () => {
     (prisma.user.findFirst as any).mockResolvedValue(null);
 
     await expect(deleteMerchantAccount('m1', 'u-other')).rejects.toThrow('Not found');
+  });
+
+  // ── assignUserToMerchant ─────────────────────────────────────────────────
+
+  it('assignUserToMerchant finds user by username and updates their merchant', async () => {
+    (prisma.user.findFirst as any).mockResolvedValue({ id: 'u99', username: 'existing_user', merchantId: null });
+    (prisma.user.update as any).mockResolvedValue({ id: 'u99', username: 'existing_user', isActive: true, createdAt: new Date() });
+    // No existing UserMerchant row — assignment should succeed
+    (prisma.userMerchant.findUnique as any).mockResolvedValue(null);
+
+    await assignUserToMerchant('m1', 'existing_user');
+
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'u99' },
+        data: expect.objectContaining({ merchantId: 'm1', role: 'merchant' }),
+      })
+    );
+  });
+
+  it('assignUserToMerchant throws UserNotFoundError when username does not exist', async () => {
+    (prisma.user.findFirst as any).mockResolvedValue(null);
+    await expect(assignUserToMerchant('m1', 'ghost')).rejects.toBeInstanceOf(UserNotFoundError);
+  });
+
+  it('assignUserToMerchant throws UserAlreadyAssignedError when user is already assigned to the same merchant', async () => {
+    // User already exists and already has a UserMerchant row for merchant 'm1' (duplicate assignment)
+    (prisma.user.findFirst as any).mockResolvedValue({ id: 'u99', username: 'taken', merchantId: 'm1' });
+    (prisma.userMerchant.findUnique as any).mockResolvedValue({ userId: 'u99', merchantId: 'm1' });
+    await expect(assignUserToMerchant('m1', 'taken')).rejects.toBeInstanceOf(UserAlreadyAssignedError);
+  });
+
+  it('assignUserToMerchant allows a user already assigned to a different merchant (multi-brand)', async () => {
+    // User belongs to 'm2' but is being added to 'm1' — valid in multi-brand system
+    (prisma.user.findFirst as any).mockResolvedValue({ id: 'u99', username: 'multi', merchantId: 'm2' });
+    (prisma.userMerchant.findUnique as any).mockResolvedValue(null); // not yet in 'm1'
+    (prisma.user.update as any).mockResolvedValue({ id: 'u99', username: 'multi', isActive: true, createdAt: new Date() });
+
+    await expect(assignUserToMerchant('m1', 'multi')).resolves.not.toThrow();
   });
 });

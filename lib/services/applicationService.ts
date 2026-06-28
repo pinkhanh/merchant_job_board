@@ -10,6 +10,8 @@ export type ApplicationFilters = {
   appliedFrom?: string;
   appliedTo?: string;
   page?: number;
+  applicantName?: string;
+  phoneNumber?: string;
 };
 
 export class ApplicationNotFoundError extends Error {}
@@ -32,6 +34,8 @@ export async function listApplications(merchantId: string, filters: ApplicationF
     },
     ...(filters.jobPostId ? { jobPostId: filters.jobPostId } : {}),
     ...(filters.importStatus ? { importStatus: filters.importStatus } : {}),
+    ...(filters.applicantName ? { applicantName: { contains: filters.applicantName, mode: Prisma.QueryMode.insensitive } } : {}),
+    ...(filters.phoneNumber ? { phoneNumber: { contains: filters.phoneNumber } } : {}),
     ...appliedAtRangeFilter(filters),
   };
   const paginate = filters.page != null;

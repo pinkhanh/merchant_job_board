@@ -24,6 +24,10 @@ export default function LoginPage() {
       setError(body.error ?? 'Đăng nhập thất bại');
       return;
     }
+    if (body.requiresBrandSelection) {
+      router.push('/merchant/select-brand');
+      return;
+    }
     router.push(body.role === 'admin' ? '/admin/merchants' : '/merchant/dashboard');
   }
 

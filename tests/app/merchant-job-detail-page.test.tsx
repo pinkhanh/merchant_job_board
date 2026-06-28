@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'jp1' }) }));
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
+  useParams: () => ({ id: 'jp1' }),
+  useRouter: () => ({ push: mockPush }),
+}));
 
 import MerchantJobDetailPage from '@/app/merchant/jobs/[id]/page';
 
@@ -91,6 +95,32 @@ describe('MerchantJobDetailPage', () => {
     render(<MerchantJobDetailPage />);
     await waitFor(() => {
       expect(screen.getByText('Đang tuyển')).toBeInTheDocument();
+    });
+  });
+
+  it('shows Tạm dừng and Xóa buttons', async () => {
+    render(<MerchantJobDetailPage />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+    expect(screen.getByRole('button', { name: /Tạm dừng/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Xóa/i })).toBeInTheDocument();
+  });
+
+  it('calls PATCH with status paused when Tạm dừng is clicked', async () => {
+    let patchBody: any = null;
+    (global.fetch as any).mockImplementation((url: string, init?: any) => {
+      if (url.startsWith('/api/jobs/')) return Promise.resolve({ ok: true, json: async () => job });
+      if (url.startsWith('/api/applications')) return Promise.resolve({ ok: true, json: async () => applicants });
+      if (url.startsWith('/api/merchant/jobs/') && init?.method === 'PATCH') {
+        patchBody = JSON.parse(init.body);
+        return Promise.resolve({ ok: true, json: async () => ({ ...job, status: 'paused' }) });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+    render(<MerchantJobDetailPage />);
+    await waitFor(() => screen.getByRole('button', { name: /Tạm dừng/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Tạm dừng/i }));
+    await waitFor(() => {
+      expect(patchBody?.status).toBe('paused');
     });
   });
 });

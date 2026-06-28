@@ -73,10 +73,11 @@ model Merchant {
   status        MerchantStatus @default(active)
   createdAt     DateTime       @default(now()) @map("created_at")
 
-  stores        Store[]
-  users         User[]
-  historicalJds HistoricalJd[]
-  jobPosts      JobPost[]
+  stores          Store[]
+  users           User[]
+  historicalJds   HistoricalJd[]
+  jobPosts        JobPost[]
+  userAssignments UserMerchant[] @relation("MerchantUsers")
 
   @@map("merchants")
 }
@@ -112,10 +113,23 @@ model User {
   isActive     Boolean   @default(true) @map("is_active")
   createdAt    DateTime  @default(now()) @map("created_at")
 
-  moderationLogs  JobPostModerationLog[]
-  phoneRevealLogs PhoneRevealLog[]
+  moderationLogs      JobPostModerationLog[]
+  phoneRevealLogs     PhoneRevealLog[]
+  csvExportLogs       CsvExportLog[]
+  merchantAssignments UserMerchant[] @relation("UserMerchants")
 
   @@map("users")
+}
+
+model UserMerchant {
+  userId     String   @map("user_id")
+  user       User     @relation("UserMerchants", fields: [userId], references: [id], onDelete: Cascade)
+  merchantId String   @map("merchant_id")
+  merchant   Merchant @relation("MerchantUsers", fields: [merchantId], references: [id], onDelete: Cascade)
+  grantedAt  DateTime @default(now()) @map("granted_at")
+
+  @@id([userId, merchantId])
+  @@map("user_merchants")
 }
 
 model HistoricalJd {
@@ -205,4 +219,16 @@ model PhoneRevealLog {
   revealedAt     DateTime    @default(now()) @map("revealed_at")
 
   @@map("phone_reveal_logs")
+}
+
+model CsvExportLog {
+  id             String   @id @default(uuid())
+  exportedBy     String   @map("exported_by")
+  exportedByUser User     @relation(fields: [exportedBy], references: [id])
+  applicantCount Int      @map("applicant_count")
+  fileName       String   @map("file_name")
+  filters        Json
+  exportedAt     DateTime @default(now()) @map("exported_at")
+
+  @@map("csv_export_logs")
 }
