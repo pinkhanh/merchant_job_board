@@ -1,3 +1,4 @@
+import { EmploymentType } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/getSession';
 import { createJobPost, listJobPosts, PastDeadlineError } from '@/lib/services/jobPostService';
@@ -37,7 +38,7 @@ export async function GET(req: Request) {
     status: (searchParams.get('status') as any) ?? undefined,
     storeId: searchParams.get('storeId') ?? undefined,
     industry: searchParams.get('industry') ?? undefined,
-    employmentType: searchParams.get('employmentType') ?? undefined,
+    employmentType: (searchParams.get('employmentType') as EmploymentType) ?? undefined,
     jobCategory: searchParams.get('jobCategory') ?? undefined,
     createdFrom: searchParams.get('createdFrom') ?? undefined,
     createdTo: searchParams.get('createdTo') ?? undefined,

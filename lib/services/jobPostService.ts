@@ -1,3 +1,4 @@
+import { EmploymentType } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
 import { PAGE_SIZE } from '@/lib/constants/pagination';
@@ -67,7 +68,7 @@ export type JobPostFilters = {
   industry?: string;
   page?: number;
   all?: boolean;
-  employmentType?: string;
+  employmentType?: EmploymentType;
   jobCategory?: string;
   createdFrom?: string;
   createdTo?: string;
