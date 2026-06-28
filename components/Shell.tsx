@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ChartBarIcon,
   BuildingOffice2Icon,
@@ -12,6 +12,7 @@ import {
   PlusCircleIcon,
   QueueListIcon,
   BuildingStorefrontIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -32,6 +33,7 @@ type NavItem = {
 };
 
 type BrandInfo = { name: string; logoUrl?: string | null };
+type Brand = { id: string; brandName: string; logoUrl: string | null };
 
 export function Shell({
   navItems,
@@ -45,10 +47,38 @@ export function Shell({
   const pathname = usePathname();
   const router = useRouter();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [brandMenuOpen, setBrandMenuOpen] = useState(false);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [switching, setSwitching] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (brandInfo) {
+      fetch('/api/merchant/my-brands')
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+          if (data?.items && data.items.length > 1) setBrands(data.items);
+        })
+        .catch(() => {});
+    }
+  }, [brandInfo]);
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
+  }
+
+  async function switchBrand(merchantId: string) {
+    setSwitching(merchantId);
+    const res = await fetch('/api/auth/select-merchant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ merchantId }),
+    });
+    if (res.ok) {
+      window.location.href = '/merchant/dashboard';
+    } else {
+      setSwitching(null);
+    }
   }
 
   return (
@@ -82,19 +112,66 @@ export function Shell({
       </header>
       <aside className="fixed left-0 top-14 bottom-0 w-[220px] bg-white border-r border-border flex flex-col">
         {brandInfo && (
-          <div data-testid="brand-info" className="flex items-center gap-3 px-5 py-4 border-b border-border">
-            {brandInfo.logoUrl ? (
-              <img
-                src={brandInfo.logoUrl}
-                alt={brandInfo.name}
-                className="w-8 h-8 rounded object-cover shrink-0"
-              />
+          <div data-testid="brand-info" className="border-b border-border">
+            {brands.length > 1 ? (
+              <div className="relative">
+                <button
+                  onClick={() => setBrandMenuOpen((o) => !o)}
+                  className="w-full flex items-center gap-3 px-5 py-4 hover:bg-primary-surface transition-colors"
+                >
+                  {brandInfo.logoUrl ? (
+                    <img
+                      src={brandInfo.logoUrl}
+                      alt={brandInfo.name}
+                      className="w-8 h-8 rounded object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded bg-primary-surface flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                      {brandInfo.name[0]}
+                    </div>
+                  )}
+                  <span className="text-sm font-semibold text-foreground leading-tight truncate flex-1 text-left">{brandInfo.name}</span>
+                  <ChevronDownIcon className={`w-4 h-4 text-text-secondary shrink-0 transition-transform ${brandMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {brandMenuOpen && (
+                  <div className="absolute left-0 right-0 top-full bg-white border border-border rounded-b-lg shadow-modal z-10 py-1">
+                    {brands.map((b) => (
+                      <button
+                        key={b.id}
+                        onClick={() => switchBrand(b.id)}
+                        disabled={switching !== null}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-surface text-left disabled:opacity-60"
+                      >
+                        {b.logoUrl ? (
+                          <img src={b.logoUrl} alt={b.brandName} className="w-7 h-7 rounded object-cover shrink-0" />
+                        ) : (
+                          <div className="w-7 h-7 rounded bg-primary-surface flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                            {b.brandName[0]}
+                          </div>
+                        )}
+                        <span className="text-sm text-foreground truncate">{b.brandName}</span>
+                        {switching === b.id && <span className="ml-auto text-xs text-text-secondary">...</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ) : (
-              <div className="w-8 h-8 rounded bg-primary-surface flex items-center justify-center text-primary text-xs font-bold shrink-0">
-                {brandInfo.name[0]}
+              <div className="flex items-center gap-3 px-5 py-4">
+                {brandInfo.logoUrl ? (
+                  <img
+                    src={brandInfo.logoUrl}
+                    alt={brandInfo.name}
+                    className="w-8 h-8 rounded object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded bg-primary-surface flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                    {brandInfo.name[0]}
+                  </div>
+                )}
+                <span className="text-sm font-semibold text-foreground leading-tight truncate">{brandInfo.name}</span>
               </div>
             )}
-            <span className="text-sm font-semibold text-foreground leading-tight truncate">{brandInfo.name}</span>
           </div>
         )}
         <nav className="pt-4 flex-1 overflow-y-auto">

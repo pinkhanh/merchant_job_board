@@ -129,6 +129,8 @@ export default function ApplicantsPage() {
           <input
             aria-label="Từ ngày"
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={appliedFrom}
             onChange={(e) => handleFilterChange(setAppliedFrom)(e.target.value)}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
@@ -139,6 +141,8 @@ export default function ApplicantsPage() {
           <input
             aria-label="Đến ngày"
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={appliedTo}
             onChange={(e) => handleFilterChange(setAppliedTo)(e.target.value)}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
@@ -160,7 +164,7 @@ export default function ApplicantsPage() {
         />
         <button
           onClick={handleExport}
-          className="border border-border rounded-md px-3 py-2 text-sm font-medium text-primary hover:bg-primary-surface"
+          className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover"
         >
           Xuất CSV
         </button>
@@ -170,7 +174,7 @@ export default function ApplicantsPage() {
           <tr className="bg-primary text-white text-xs uppercase">
             <th className="px-4 py-3 text-left">Tên</th>
             <th className="px-4 py-3 text-left">SĐT</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Thời gian nộp</th>
+            <th className="px-4 py-3 text-left">Thời gian nộp</th>
             <th className="px-4 py-3 text-left">Vị trí</th>
           </tr>
         </thead>
@@ -211,6 +215,7 @@ export default function ApplicantsPage() {
           onClose={() => setSelectedPhone(null)}
         />
       )}
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total} itemLabel="ứng viên" onPageChange={setPage} />
       {exportLogs.length > 0 && (
         <div className="mt-8">
           <h2 className="text-lg font-bold mb-4">Lịch sử xuất CSV</h2>
@@ -234,7 +239,6 @@ export default function ApplicantsPage() {
           </table>
         </div>
       )}
-      <Pagination page={page} pageSize={PAGE_SIZE} total={total} itemLabel="ứng viên" onPageChange={setPage} />
     </div>
   );
 }

@@ -8,6 +8,11 @@ import { CheckIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { VIETNAM_PROVINCES } from '@/lib/constants/vietnamProvinces';
 import { useToast } from '@/components/Toast';
 
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
+}
+
 type WizardState = {
   storeIds: string[];
   title: string;
@@ -47,6 +52,7 @@ export default function JobWizardPage() {
   const [regionCity, setRegionCity] = useState('');
   const [regionDistrict, setRegionDistrict] = useState('');
   const [regionStoreCount, setRegionStoreCount] = useState<number | null>(null);
+  const [regionStores, setRegionStores] = useState<Array<{ id: string; name: string; streetAddress?: string; ward?: string; district?: string; city?: string }>>([]);
   const [isRegionLoading, setIsRegionLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -91,8 +97,9 @@ export default function JobWizardPage() {
     setState((s) => ({ ...s, storeIds: [] }));
   }
 
-  async function fetchAllStoreIdsForRegion(city: string, district: string): Promise<string[]> {
+  async function fetchAllStoreIdsForRegion(city: string, district: string): Promise<{ ids: string[]; stores: Array<{ id: string; name: string; streetAddress?: string; ward?: string; district?: string; city?: string }> }> {
     const ids: string[] = [];
+    const stores: Array<{ id: string; name: string; streetAddress?: string; ward?: string; district?: string; city?: string }> = [];
     let page = 1;
     let total = Infinity;
     while (ids.length < total) {
@@ -103,17 +110,19 @@ export default function JobWizardPage() {
       const res = await fetch(`/api/merchant/stores?${params.toString()}`);
       const body = await res.json();
       ids.push(...body.items.map((store: { id: string }) => store.id));
+      stores.push(...body.items);
       total = body.total;
       if (!body.items || body.items.length === 0) break;
       page += 1;
     }
-    return ids;
+    return { ids, stores };
   }
 
   function selectRegionCity(city: string) {
     setRegionCity(city);
     setRegionDistrict('');
     setRegionStoreCount(null);
+    setRegionStores([]);
     setState((s) => ({ ...s, storeIds: [] }));
   }
 
@@ -121,13 +130,29 @@ export default function JobWizardPage() {
     setRegionDistrict(district);
     if (!regionCity || !district) {
       setRegionStoreCount(null);
+      setRegionStores([]);
       setState((s) => ({ ...s, storeIds: [] }));
       return;
     }
     setIsRegionLoading(true);
     try {
-      const ids = await fetchAllStoreIdsForRegion(regionCity, district);
+      const { ids, stores } = await fetchAllStoreIdsForRegion(regionCity, district);
       setRegionStoreCount(ids.length);
+      setRegionStores(stores);
+      setState((s) => ({ ...s, storeIds: ids }));
+    } finally {
+      setIsRegionLoading(false);
+    }
+  }
+
+  async function handleRegionCityOnly(city: string) {
+    selectRegionCity(city);
+    if (!city) return;
+    setIsRegionLoading(true);
+    try {
+      const { ids, stores } = await fetchAllStoreIdsForRegion(city, '');
+      setRegionStoreCount(ids.length);
+      setRegionStores(stores);
       setState((s) => ({ ...s, storeIds: ids }));
     } finally {
       setIsRegionLoading(false);
@@ -146,6 +171,16 @@ export default function JobWizardPage() {
   function goToStep3() {
     if (!state.title.trim()) {
       setStepError('Vui lòng nhập Tên vị trí tuyển dụng');
+      return;
+    }
+    if (!state.deadline) {
+      setStepError('Vui lòng chọn Hạn nộp hồ sơ');
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(state.deadline) <= today) {
+      setStepError('Hạn nộp hồ sơ phải sau ngày hiện tại');
       return;
     }
     setStepError(null);
@@ -378,7 +413,7 @@ export default function JobWizardPage() {
                   Tỉnh/Thành Phố
                   <select
                     value={regionCity}
-                    onChange={(e) => selectRegionCity(e.target.value)}
+                    onChange={(e) => handleRegionCityOnly(e.target.value)}
                     className="border border-border rounded-md px-2 py-2 text-sm bg-white"
                   >
                     <option value="">Chọn tỉnh/thành phố</option>
@@ -395,7 +430,7 @@ export default function JobWizardPage() {
                     disabled={!regionCity}
                     className="border border-border rounded-md px-2 py-2 text-sm bg-white"
                   >
-                    <option value="">Chọn quận/huyện</option>
+                    <option value="">Tất cả quận/huyện</option>
                     {(VIETNAM_PROVINCES[regionCity] ?? []).map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
@@ -403,10 +438,32 @@ export default function JobWizardPage() {
                 </label>
               </div>
               {isRegionLoading && <p className="text-sm text-text-secondary">Đang tải danh sách cửa hàng...</p>}
-              {regionStoreCount !== null && (
-                <p className="text-sm text-text-secondary">
-                  Đã chọn {regionStoreCount} cửa hàng tại {regionDistrict}, {regionCity}
-                </p>
+              {!isRegionLoading && regionStores.length > 0 && (
+                <>
+                  <p className="text-sm text-text-secondary">
+                    {regionStoreCount} cửa hàng{regionDistrict ? ` tại ${regionDistrict}, ${regionCity}` : ` tại ${regionCity}`}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {regionStores.map((store) => (
+                      <div
+                        key={store.id}
+                        className="flex items-start gap-3 px-4 py-3 rounded-lg border border-primary bg-primary-surface"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{store.name}</p>
+                          <p className="text-xs text-text-secondary mt-0.5">
+                            {[store.streetAddress, store.ward, store.district, store.city]
+                              .filter(Boolean)
+                              .join(', ')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              {!isRegionLoading && regionStoreCount === 0 && (
+                <p className="text-sm text-text-secondary">Không tìm thấy cửa hàng trong khu vực này</p>
               )}
             </div>
           )}
@@ -435,9 +492,12 @@ export default function JobWizardPage() {
           <h1 className="text-lg font-bold">Thông tin công việc</h1>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="title" className="text-xs font-semibold uppercase tracking-wide">
-              Tên vị trí tuyển dụng <span className="text-status-off-text">*</span>
-            </label>
+            <div className="flex items-center gap-1">
+              <label htmlFor="title" className="text-xs font-semibold uppercase tracking-wide">
+                Tên vị trí tuyển dụng
+              </label>
+              <span className="text-status-off-text text-xs">*</span>
+            </div>
             <input
               id="title"
               value={state.title}
@@ -496,11 +556,14 @@ export default function JobWizardPage() {
 
           <div className="flex flex-col gap-1">
             <label htmlFor="deadline" className="text-xs font-semibold uppercase tracking-wide">
-              Hạn nộp hồ sơ
+              Hạn nộp hồ sơ <span className="text-status-off-text">*</span>
             </label>
             <input
               id="deadline"
               type="date"
+              lang="vi"
+              placeholder="dd/mm/yyyy"
+              min={new Date().toISOString().split('T')[0]}
               value={state.deadline}
               onChange={(e) => setState((s) => ({ ...s, deadline: e.target.value }))}
               className={inputClass}
@@ -645,7 +708,7 @@ export default function JobWizardPage() {
           {reviewRow('Vị trí công việc', state.position || '—')}
           {reviewRow('Loại hình làm việc', EMPLOYMENT_TYPES.find((t) => t.value === state.employmentType)?.label ?? '—')}
           {reviewRow('Số cửa hàng', `${state.storeIds.length} cửa hàng`)}
-          {reviewRow('Hạn nộp hồ sơ', state.deadline || '—')}
+          {reviewRow('Hạn nộp hồ sơ', state.deadline ? fmtDate(state.deadline) : '—')}
           {reviewRow('Mức lương', salaryDisplay())}
         </div>
 

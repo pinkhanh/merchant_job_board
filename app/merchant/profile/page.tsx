@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useStoreSearch } from '@/lib/hooks/useStoreSearch';
-import { StoreFilterBar } from '@/components/StoreFilterBar';
 import { MerchantProfileView } from '@/components/MerchantProfileView';
 import { useToast } from '@/components/Toast';
 
@@ -20,19 +19,33 @@ export default function MerchantProfilePage() {
   const showToast = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [categoryInput, setCategoryInput] = useState('');
-  const [showAllStores, setShowAllStores] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const storeSearch = useStoreSearch();
+
+  const originalRef = useRef<{ description: string | null; hotline: string | null } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   function loadProfile() {
     return fetch('/api/merchant/profile')
       .then((res) => res.json())
-      .then(setProfile);
+      .then((data: Profile) => {
+        setProfile(data);
+        originalRef.current = { description: data.description, hotline: data.hotline };
+        setIsDirty(false);
+      });
   }
 
   useEffect(() => {
     loadProfile();
   }, []);
+
+  function checkDirty(next: { description: string | null; hotline: string | null }) {
+    if (!originalRef.current) return;
+    setIsDirty(
+      next.description !== originalRef.current.description ||
+      next.hotline !== originalRef.current.hotline
+    );
+  }
 
   async function handleSave() {
     if (!profile) return;
@@ -43,6 +56,8 @@ export default function MerchantProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: profile.description, hotline: profile.hotline }),
       });
+      originalRef.current = { description: profile.description, hotline: profile.hotline };
+      setIsDirty(false);
       showToast('success', 'Đã lưu thông tin thương hiệu');
     } catch {
       showToast('error', 'Lưu thất bại, vui lòng thử lại');
@@ -92,43 +107,33 @@ export default function MerchantProfilePage() {
       stores={storeSearch.items}
       storeTotal={storeSearch.total}
       readOnly={false}
+      isDirty={isDirty}
       onSave={handleSave}
       isSaving={isSaving}
-      onDescriptionChange={(value) => setProfile({ ...profile, description: value })}
-      onHotlineChange={(value) => setProfile({ ...profile, hotline: value })}
+      onDescriptionChange={(value) => {
+        const next = { ...profile, description: value };
+        setProfile(next);
+        checkDirty({ description: value, hotline: profile.hotline });
+      }}
+      onHotlineChange={(value) => {
+        const next = { ...profile, hotline: value };
+        setProfile(next);
+        checkDirty({ description: profile.description, hotline: value });
+      }}
       categoryInput={categoryInput}
       onCategoryInputChange={setCategoryInput}
       onAddCategory={handleAddCategory}
       onRemoveCategory={handleRemoveCategory}
+      storeCity={storeSearch.city}
+      onStoreCityChange={storeSearch.setCity}
+      storeDistrict={storeSearch.district}
+      onStoreDistrictChange={storeSearch.setDistrict}
       expandedStoresSlot={
-        !showAllStores ? (
-          <button onClick={() => setShowAllStores(true)} className="text-primary text-sm hover:underline mt-3">
-            Xem tất cả cửa hàng
+        storeSearch.hasMore ? (
+          <button onClick={storeSearch.loadMore} className="text-primary text-sm hover:underline mt-3">
+            Xem thêm
           </button>
-        ) : (
-          <div className="mt-4 flex flex-col gap-4">
-            <StoreFilterBar
-              keyword={storeSearch.keyword}
-              onKeywordChange={storeSearch.setKeyword}
-              city={storeSearch.city}
-              onCityChange={storeSearch.setCity}
-              district={storeSearch.district}
-              onDistrictChange={storeSearch.setDistrict}
-            />
-            <ul className="bg-white border border-border rounded-lg divide-y divide-border">
-              {storeSearch.items.map((s) => (
-                <li key={s.id} className="px-4 py-3">
-                  {s.name}
-                </li>
-              ))}
-            </ul>
-            {storeSearch.hasMore && (
-              <button onClick={storeSearch.loadMore} className="text-primary text-sm hover:underline self-start">
-                Xem thêm
-              </button>
-            )}
-          </div>
-        )
+        ) : undefined
       }
     />
   );

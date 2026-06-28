@@ -125,6 +125,8 @@ export default function AdminJobsPage() {
           Từ ngày tạo
           <input
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={filterCreatedFrom}
             onChange={(e) => setFilterCreatedFrom(e.target.value)}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
@@ -134,6 +136,8 @@ export default function AdminJobsPage() {
           Đến ngày tạo
           <input
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={filterCreatedTo}
             onChange={(e) => setFilterCreatedTo(e.target.value)}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
@@ -160,7 +164,9 @@ export default function AdminJobsPage() {
         <tbody>
           {jobPosts.map((post) => (
             <tr key={post.id} className="border-b border-border hover:bg-primary-surface">
-              <td className="px-4 py-3 text-primary font-medium">{post.title}</td>
+              <td className="px-4 py-3 font-medium">
+                <Link href={`/admin/jobs/${post.id}`} className="text-primary hover:underline">{post.title}</Link>
+              </td>
               <td className="px-4 py-3">{post.merchant.brandName}</td>
               <td className="px-4 py-3">
                 <span className={`text-[11px] font-medium px-2 py-0.5 rounded-sm ${STATUS_BADGE[post.status]}`}>

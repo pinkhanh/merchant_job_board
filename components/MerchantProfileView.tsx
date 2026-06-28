@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { VIETNAM_PROVINCES } from '@/lib/constants/vietnamProvinces';
 
 export type ProfileStore = {
   id: string;
@@ -24,6 +25,7 @@ export type MerchantProfileViewProps = {
   stores: ProfileStore[];
   storeTotal: number;
   readOnly: boolean;
+  isDirty?: boolean;
 
   // Editable-mode only props (ignored when readOnly is true).
   onSave?: () => void;
@@ -35,14 +37,14 @@ export type MerchantProfileViewProps = {
   onAddCategory?: () => void;
   onRemoveCategory?: (category: string) => void;
 
-  // Rendered below the store preview list once "Xem tất cả cửa hàng" is
-  // expanded. In editable mode this is the StoreFilterBar + paginated
-  // store-search list; in read-only mode the caller can simply render the
-  // remaining already-fetched stores (no slot needed).
+  // Store filter callbacks (editable mode)
+  storeCity?: string;
+  onStoreCityChange?: (city: string) => void;
+  storeDistrict?: string;
+  onStoreDistrictChange?: (district: string) => void;
+
   expandedStoresSlot?: ReactNode;
 };
-
-const PREVIEW_STORE_COUNT = 3;
 
 export function MerchantProfileView({
   brandName,
@@ -55,6 +57,7 @@ export function MerchantProfileView({
   stores,
   storeTotal,
   readOnly,
+  isDirty,
   onSave,
   isSaving,
   onDescriptionChange,
@@ -63,10 +66,12 @@ export function MerchantProfileView({
   onCategoryInputChange,
   onAddCategory,
   onRemoveCategory,
+  storeCity,
+  onStoreCityChange,
+  storeDistrict,
+  onStoreDistrictChange,
   expandedStoresSlot,
 }: MerchantProfileViewProps) {
-  const [storeSearch, setStoreSearch] = useState('');
-
   const storesByOldest = [...stores].sort((a, b) => {
     const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -74,13 +79,6 @@ export function MerchantProfileView({
   });
 
   const headquartersStoreId = storesByOldest[0]?.id;
-
-  // Filter across ALL stores first, then take the preview slice so that
-  // searching for a store beyond the first PREVIEW_STORE_COUNT still works.
-  const filteredStores = storesByOldest.filter(s =>
-    s.name.toLowerCase().includes(storeSearch.toLowerCase())
-  );
-  const visibleStores = filteredStores.slice(0, PREVIEW_STORE_COUNT);
 
   return (
     <div className="flex flex-col gap-4">
@@ -133,17 +131,6 @@ export function MerchantProfileView({
               )}
             </div>
           </div>
-          {!readOnly && (
-            <div className="flex gap-2 shrink-0">
-              <button
-                onClick={onSave}
-                disabled={isSaving}
-                className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover disabled:opacity-60"
-              >
-                {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -166,13 +153,6 @@ export function MerchantProfileView({
               className="border border-border rounded-md px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
             />
           </label>
-          <button
-            onClick={onSave}
-            disabled={isSaving}
-            className="bg-primary text-white rounded-md px-5 py-2.5 font-semibold hover:bg-primary-hover self-start disabled:opacity-60"
-          >
-            {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-          </button>
         </div>
       )}
 
@@ -189,15 +169,40 @@ export function MerchantProfileView({
 
           <div className="bg-white border border-border rounded-lg shadow-card p-6">
             <h2 className="text-lg font-bold mb-4">Danh sách cửa hàng ({storeTotal})</h2>
-            <input
-              type="text"
-              placeholder="Tìm cửa hàng..."
-              value={storeSearch}
-              onChange={e => setStoreSearch(e.target.value)}
-              className="mt-3 mb-4 w-full max-w-sm px-3 py-2 rounded-lg border border-border bg-white text-sm"
-            />
+
+            {/* Province/District filter */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              <label className="flex flex-col gap-1 text-xs font-medium">
+                Tỉnh/Thành Phố
+                <select
+                  value={storeCity ?? ''}
+                  onChange={(e) => onStoreCityChange?.(e.target.value)}
+                  className="border border-border rounded-md px-2 py-2 text-sm bg-white"
+                >
+                  <option value="">Tất cả</option>
+                  {Object.keys(VIETNAM_PROVINCES).map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-medium">
+                Quận/Huyện
+                <select
+                  value={storeDistrict ?? ''}
+                  onChange={(e) => onStoreDistrictChange?.(e.target.value)}
+                  disabled={!storeCity}
+                  className="border border-border rounded-md px-2 py-2 text-sm bg-white disabled:opacity-60"
+                >
+                  <option value="">Tất cả</option>
+                  {(VIETNAM_PROVINCES[storeCity ?? ''] ?? []).map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             <ul className="divide-y divide-border">
-              {visibleStores.map((store) => (
+              {storesByOldest.map((store) => (
                 <li key={store.id} className="py-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-foreground">{store.name}</span>
@@ -287,6 +292,19 @@ export function MerchantProfileView({
         <p className="text-xs italic text-text-secondary">
           Bạn đang xem thông tin công khai của thương hiệu.
         </p>
+      )}
+
+      {/* Sticky save button — only visible when there are unsaved changes */}
+      {!readOnly && isDirty && (
+        <div className="fixed bottom-6 right-8 z-20">
+          <button
+            onClick={onSave}
+            disabled={isSaving}
+            className="bg-primary text-white rounded-md px-6 py-2.5 text-sm font-semibold hover:bg-primary-hover shadow-modal disabled:opacity-60"
+          >
+            {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </button>
+        </div>
       )}
     </div>
   );

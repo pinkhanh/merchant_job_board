@@ -109,6 +109,8 @@ export default function ManageJobPostsPage() {
           Từ ngày tạo
           <input
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={createdFrom}
             onChange={(e) => { setCreatedFrom(e.target.value); setPage(1); }}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
@@ -118,6 +120,8 @@ export default function ManageJobPostsPage() {
           Đến ngày tạo
           <input
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={createdTo}
             onChange={(e) => { setCreatedTo(e.target.value); setPage(1); }}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"

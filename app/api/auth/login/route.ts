@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       const response = NextResponse.json({ ok: true, requiresBrandSelection: true });
       response.cookies.set('temp_session', tempToken, {
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
         maxAge: 300,
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const res = NextResponse.json({ ok: true, role: result.role });
     res.cookies.set('session', result.token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,

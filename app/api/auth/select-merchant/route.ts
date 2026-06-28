@@ -1,11 +1,15 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getTempSession } from '@/lib/auth/getTempSession';
+import { getSession } from '@/lib/auth/getSession';
 import { createSessionToken } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 
 export async function POST(req: NextRequest) {
   const tempSession = await getTempSession(req);
-  if (!tempSession?.userId) {
+  const fullSession = !tempSession?.userId ? await getSession() : null;
+  const userId = tempSession?.userId ?? fullSession?.userId;
+
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -15,7 +19,7 @@ export async function POST(req: NextRequest) {
   // Verify this user actually has access to the chosen merchant
   const assignment = await prisma.userMerchant.findUnique({
     where: {
-      userId_merchantId: { userId: tempSession.userId, merchantId },
+      userId_merchantId: { userId, merchantId },
     },
   });
   if (!assignment) {
@@ -23,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Issue full session
-  const user = await prisma.user.findUnique({ where: { id: tempSession.userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
   const sessionToken = await createSessionToken({
@@ -35,7 +39,7 @@ export async function POST(req: NextRequest) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set('session', sessionToken, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 7,

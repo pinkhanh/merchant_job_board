@@ -3,11 +3,15 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+type Brand = { id: string; brandName: string; logoUrl: string | null };
+
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [selecting, setSelecting] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -25,10 +29,30 @@ export default function LoginPage() {
       return;
     }
     if (body.requiresBrandSelection) {
-      router.push('/merchant/select-brand');
+      const brandsRes = await fetch('/api/merchant/brands');
+      if (brandsRes.ok) {
+        const data = await brandsRes.json();
+        setBrands(data.items ?? []);
+      } else {
+        router.push('/merchant/select-brand');
+      }
       return;
     }
     router.push(body.role === 'admin' ? '/admin/merchants' : '/merchant/dashboard');
+  }
+
+  async function selectBrand(merchantId: string) {
+    setSelecting(merchantId);
+    const res = await fetch('/api/auth/select-merchant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ merchantId }),
+    });
+    if (!res.ok) {
+      setSelecting(null);
+      return;
+    }
+    router.push('/merchant/dashboard');
   }
 
   return (
@@ -79,6 +103,37 @@ export default function LoginPage() {
           Đăng nhập
         </button>
       </form>
+
+      {/* Brand selection popup */}
+      {brands.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-8">
+            <h2 className="text-xl font-bold text-foreground mb-6">Chọn thương hiệu quản lý</h2>
+            <div className="space-y-3">
+              {brands.map((brand) => (
+                <button
+                  key={brand.id}
+                  onClick={() => selectBrand(brand.id)}
+                  disabled={selecting !== null}
+                  className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-primary hover:bg-primary-surface disabled:opacity-60 transition-colors text-left"
+                >
+                  {brand.logoUrl ? (
+                    <img src={brand.logoUrl} alt={brand.brandName} className="w-10 h-10 rounded object-cover shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-primary-surface flex items-center justify-center text-primary font-bold shrink-0">
+                      {brand.brandName[0]}
+                    </div>
+                  )}
+                  <span className="font-medium text-foreground">{brand.brandName}</span>
+                  {selecting === brand.id && (
+                    <span className="ml-auto text-xs text-text-secondary">Đang chọn...</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

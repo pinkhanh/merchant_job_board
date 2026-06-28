@@ -6,6 +6,11 @@ import { CheckIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { VIETNAM_PROVINCES } from '@/lib/constants/vietnamProvinces';
 import { useToast } from '@/components/Toast';
 
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
+}
+
 type Merchant = { id: string; brandName: string; logoUrl: string | null; status: string };
 type Store = { id: string; name: string; streetAddress: string | null; ward: string | null; district: string; city: string };
 
@@ -392,7 +397,7 @@ export default function AdminJobsNewPage() {
           </fieldset>
           <div className="flex flex-col gap-1">
             <label htmlFor="deadline" className="text-xs font-semibold uppercase tracking-wide">Hạn nộp hồ sơ</label>
-            <input id="deadline" type="date" value={state.deadline} onChange={(e) => setState((s) => ({ ...s, deadline: e.target.value }))} className={inputClass} />
+            <input id="deadline" type="date" lang="vi" placeholder="dd/mm/yyyy" value={state.deadline} onChange={(e) => setState((s) => ({ ...s, deadline: e.target.value }))} className={inputClass} />
           </div>
           <div className="flex gap-4">
             <div className="flex flex-col gap-1 flex-1">
@@ -476,7 +481,7 @@ export default function AdminJobsNewPage() {
           {reviewRow('Thương hiệu', selectedMerchant?.brandName ?? '—')}
           {reviewRow('Loại hình', EMPLOYMENT_TYPES.find((t) => t.value === state.employmentType)?.label ?? '—')}
           {reviewRow('Số cửa hàng', `${state.storeIds.length} cửa hàng`)}
-          {reviewRow('Hạn nộp hồ sơ', state.deadline || '—')}
+          {reviewRow('Hạn nộp hồ sơ', state.deadline ? fmtDate(state.deadline) : '—')}
         </div>
         {state.description && (
           <div className="flex flex-col gap-1">

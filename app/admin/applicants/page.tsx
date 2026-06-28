@@ -25,6 +25,7 @@ type ExportLog = {
   fileName: string;
   exportedAt: string;
   applicantCount: number;
+  brandName: string | null;
 };
 
 function formatExportDate(iso: string) {
@@ -127,6 +128,8 @@ export default function AdminApplicantsPage() {
           Từ ngày
           <input
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={appliedFrom}
             onChange={(e) => setAppliedFrom(e.target.value)}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
@@ -136,6 +139,8 @@ export default function AdminApplicantsPage() {
           Đến ngày
           <input
             type="date"
+            lang="vi"
+            placeholder="dd/mm/yyyy"
             value={appliedTo}
             onChange={(e) => setAppliedTo(e.target.value)}
             className="border border-border rounded-md px-2 py-2 text-sm bg-white"
@@ -157,7 +162,7 @@ export default function AdminApplicantsPage() {
         />
         <button
           onClick={handleExport}
-          className="border border-border rounded-md px-3 py-2 text-sm font-medium text-primary hover:bg-primary-surface"
+          className="bg-primary text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-primary-hover"
         >
           Xuất CSV
         </button>
@@ -168,7 +173,7 @@ export default function AdminApplicantsPage() {
             <th className="px-4 py-3 text-left">Tên</th>
             <th className="px-4 py-3 text-left">SĐT</th>
             <th className="px-4 py-3 text-left">Thương hiệu</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase">Thời gian nộp</th>
+            <th className="px-4 py-3 text-left">Thời gian nộp</th>
             <th className="px-4 py-3 text-left">Vị trí</th>
             <th className="px-4 py-3 text-left">Địa điểm</th>
           </tr>
@@ -215,6 +220,7 @@ export default function AdminApplicantsPage() {
             <thead>
               <tr className="bg-primary text-white text-xs uppercase">
                 <th className="px-4 py-3 text-left">Tên file</th>
+                <th className="px-4 py-3 text-left">Thương hiệu</th>
                 <th className="px-4 py-3 text-left">Ngày xuất</th>
                 <th className="px-4 py-3 text-left">Số ứng viên</th>
               </tr>
@@ -223,6 +229,7 @@ export default function AdminApplicantsPage() {
               {exportLogs.map((log) => (
                 <tr key={log.id} className="border-b border-border hover:bg-primary-surface">
                   <td className="px-4 py-3 text-sm font-medium">{log.fileName}</td>
+                  <td className="px-4 py-3 text-sm text-text-secondary">{log.brandName ?? '—'}</td>
                   <td className="px-4 py-3 text-sm text-text-secondary">{formatExportDate(log.exportedAt)}</td>
                   <td className="px-4 py-3 text-sm text-text-secondary">{log.applicantCount} ứng viên</td>
                 </tr>

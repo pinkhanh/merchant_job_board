@@ -24,6 +24,11 @@ type Applicant = {
   importStatus: 'new' | 'imported';
 };
 
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
+}
+
 const STATUS_BADGE: Record<string, string> = {
   live: 'bg-status-active-bg text-status-active-text',
   paused: 'bg-status-pending-bg text-status-pending-text',
@@ -134,7 +139,7 @@ export default function MerchantJobDetailPage() {
           </span>
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4 justify-end">
           <button
             onClick={handlePause}
             disabled={isPausing}
@@ -166,7 +171,7 @@ export default function MerchantJobDetailPage() {
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">Hạn nộp hồ sơ</p>
-            <p>{job.deadline}</p>
+            <p>{job.deadline ? fmtDate(job.deadline) : '—'}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">Cửa hàng</p>
