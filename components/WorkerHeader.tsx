@@ -74,19 +74,11 @@ export function WorkerHeader() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-worker-border flex items-center px-4 z-10">
-        <img src="/logo-momo.png" alt="MoMo" className="w-8 h-8 rounded" />
-        <span className="ml-2 font-bold text-base">MoMo</span>
-
-        <div className="ml-auto">
-          <button
-            onClick={openSheet}
-            className="flex items-center gap-1 bg-white border border-worker-border rounded-worker-pill px-3.5 py-2 text-sm font-medium"
-          >
-            <MapPinIcon className="w-4 h-4" />
-            {currentLabel}
-            <ChevronDownIcon className="w-4 h-4" />
-          </button>
+        <div className="p-[4px]">
+          <img src="/logo-momo.png" alt="MoMo" className="w-8 h-8 rounded" />
         </div>
+        <span className="ml-2 font-normal text-base">MoMo</span>
+
       </header>
 
       {/* Backdrop */}
@@ -109,7 +101,7 @@ export function WorkerHeader() {
         </div>
 
         <div className="flex items-center justify-between px-4 py-3 border-b border-worker-border">
-          <span className="font-bold text-base">Chọn địa điểm</span>
+          <span className="font-normal text-base">Chọn địa điểm</span>
           <button onClick={closeSheet} className="p-1">
             <XMarkIcon className="w-5 h-5 text-worker-text-secondary" />
           </button>
@@ -160,7 +152,7 @@ export function WorkerHeader() {
 
           <button
             onClick={confirmLocation}
-            className="w-full bg-worker-primary text-white rounded-worker-pill py-3 text-sm font-bold mt-2"
+            className="w-full bg-worker-primary text-white rounded-worker-pill py-3 text-sm font-normal mt-2"
           >
             Tìm việc tại đây
           </button>
@@ -183,7 +175,7 @@ export function WorkerHeader() {
           <button onClick={() => setSheet('main')} className="p-1 -ml-1 mr-2">
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
-          <span className="font-bold text-base flex-1 text-center">Chọn tỉnh/ thành</span>
+          <span className="font-normal text-base flex-1 text-center">Chọn tỉnh/ thành</span>
           <button onClick={closeSheet} className="p-1 -mr-1">
             <XMarkIcon className="w-5 h-5 text-worker-text-secondary" />
           </button>

@@ -6,7 +6,7 @@ export function WorkerFooter() {
         <div className="flex items-start gap-3 mb-6">
           <img src="/logo-momo.png" alt="MoMo" className="w-10 h-10 rounded shrink-0" />
           <div>
-            <p className="font-bold text-sm leading-snug">CÔNG TY CỔ PHẦN DỊCH VỤ DI ĐỘNG TRỰC TUYẾN</p>
+            <p className="font-normal text-sm leading-snug">CÔNG TY CỔ PHẦN DỊCH VỤ DI ĐỘNG TRỰC TUYẾN</p>
             <p className="text-xs text-gray-400 mt-1 leading-relaxed">
               Lầu 6, Toà nhà Phú Mỹ Hưng, số 8 Hoàng Văn Thái, khu phố 1, P. Tân Phú, Q. 7, Thành phố Hồ Chí Minh
             </p>
@@ -15,7 +15,7 @@ export function WorkerFooter() {
 
         {/* MoMo links */}
         <div className="mb-5">
-          <p className="font-bold text-sm mb-2">MoMo</p>
+          <p className="font-normal text-sm mb-2">MoMo</p>
           <ul className="space-y-2">
             {['Giới thiệu', 'Điều khoản điều kiện', 'Blog', 'Liên hệ', 'Hỏi đáp'].map((link) => (
               <li key={link}>
@@ -27,7 +27,7 @@ export function WorkerFooter() {
 
         {/* CSKH */}
         <div className="mb-5">
-          <p className="font-bold text-sm mb-2">CHĂM SÓC KHÁCH HÀNG</p>
+          <p className="font-normal text-sm mb-2">CHĂM SÓC KHÁCH HÀNG</p>
           <div className="text-gray-400 text-sm space-y-1">
             <p>Địa chỉ: Tầng M, Toà nhà Victory Tower, số 12 Tân Trào, P. Tân Phú, Q. 7, Thành phố Hồ Chí Minh</p>
             <p>Hotline: <span className="text-white">1900 5454 41</span> (1.000đ/phút)</p>
@@ -41,14 +41,14 @@ export function WorkerFooter() {
             </svg>
             <span className="text-left">
               <span className="block text-gray-400 text-[10px]">Hướng dẫn trợ giúp trên</span>
-              <span className="font-bold">ỨNG DỤNG MOMO</span>
+              <span className="font-normal">ỨNG DỤNG MOMO</span>
             </span>
           </button>
         </div>
 
         {/* Hợp tác doanh nghiệp */}
         <div className="mb-6">
-          <p className="font-bold text-sm mb-2">HỢP TÁC DOANH NGHIỆP</p>
+          <p className="font-normal text-sm mb-2">HỢP TÁC DOANH NGHIỆP</p>
           <div className="text-gray-400 text-sm space-y-1">
             <p>Hotline: <span className="text-white">1900 636 652</span></p>
             <p>Email: <span className="text-white">merchant.care@momo.vn</span></p>
@@ -63,29 +63,7 @@ export function WorkerFooter() {
             </svg>
             <span className="text-left">
               <span className="block text-gray-400 text-[10px]">Hợp tác doanh nghiệp</span>
-              <span className="font-bold">ĐĂNG KÝ HỢP TÁC</span>
-            </span>
-          </button>
-        </div>
-
-        {/* App download */}
-        <div className="flex gap-3 mb-5">
-          <button className="flex-1 flex items-center justify-center gap-1.5 bg-black border border-gray-600 rounded-lg py-2.5 px-3">
-            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-            </svg>
-            <span className="text-left">
-              <span className="block text-gray-400 text-[9px]">Tải về trên</span>
-              <span className="text-white text-xs font-semibold">App Store</span>
-            </span>
-          </button>
-          <button className="flex-1 flex items-center justify-center gap-1.5 bg-black border border-gray-600 rounded-lg py-2.5 px-3">
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3.18 23.76c.3.17.64.22.99.15l12.6-7.27-2.83-2.83-10.76 9.95zM.5 1.53C.19 1.86 0 2.38 0 3.06v17.89c0 .68.19 1.2.5 1.53l.08.08 10.02-10.02v-.24L.58 1.45.5 1.53zm16.62 11.28-3.35-1.94-.08-.08-2.55 2.55 2.64 2.64 3.34-1.93c.95-.55.95-1.45 0-2zM3.18.24c-.35-.07-.69-.02-.99.15l10.85 10.85 2.83-2.83L3.18.24z" />
-            </svg>
-            <span className="text-left">
-              <span className="block text-gray-400 text-[9px]">Tải nội dung trên</span>
-              <span className="text-white text-xs font-semibold">Google Play</span>
+              <span className="font-normal">ĐĂNG KÝ HỢP TÁC</span>
             </span>
           </button>
         </div>
@@ -114,7 +92,7 @@ export function WorkerFooter() {
           <p className="text-gray-500 text-[11px]">©Copyright M_Service 2023</p>
           <div className="flex items-center gap-1">
             <div className="border border-red-600 rounded px-1.5 py-0.5">
-              <p className="text-red-600 text-[9px] font-bold leading-tight">ĐÃ ĐĂNG KÝ</p>
+              <p className="text-red-600 text-[9px] font-normal leading-tight">ĐÃ ĐĂNG KÝ</p>
               <p className="text-red-600 text-[9px] leading-tight">BỘ CÔNG THƯƠNG</p>
             </div>
           </div>

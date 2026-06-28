@@ -25,6 +25,12 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!/^\d{10}$/.test(phone)) {
+      setError('Số điện thoại phải gồm đúng 10 chữ số.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/applications', {
@@ -34,7 +40,11 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
       });
       const body = await res.json();
       if (!res.ok) {
-        setError(body.error ?? 'Đã có lỗi xảy ra, vui lòng thử lại.');
+        const err = body.error;
+        const msg = Array.isArray(err)
+          ? (err[0]?.message ?? 'Đã có lỗi xảy ra, vui lòng thử lại.')
+          : (typeof err === 'string' ? err : 'Đã có lỗi xảy ra, vui lòng thử lại.');
+        setError(msg);
         return;
       }
       setSuccess(true);
@@ -44,23 +54,31 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-20">
-      <div className="bg-white rounded-t-worker-md sm:rounded-worker-md w-full sm:w-[480px] shadow-worker-modal p-6">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-20">
+      <div className="bg-white rounded-worker-md w-full max-w-[480px] mx-4 shadow-worker-modal p-6">
         {success ? (
-          <div className="text-center py-6">
-            <Notification
-              variant="success"
-              title="Đã gửi hồ sơ!"
-              message="Nhà tuyển dụng sẽ liên hệ qua số điện thoại bạn đã cung cấp."
-            />
-            <button onClick={onClose} className="text-worker-primary text-sm font-semibold mt-4">
-              Đóng
-            </button>
-          </div>
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-normal">Ứng tuyển</h2>
+              <button onClick={onClose} aria-label="Đóng">
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex flex-col items-center text-center py-8">
+              <Notification
+                variant="success"
+                title="Đã gửi hồ sơ!"
+                message="Nhà tuyển dụng sẽ liên hệ qua số điện thoại bạn đã cung cấp."
+              />
+              <button onClick={onClose} className="mt-6 w-full bg-worker-primary text-white rounded-worker-pill py-3 text-sm font-normal">
+                Đóng
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Ứng tuyển</h2>
+              <h2 className="text-lg font-normal">Ứng tuyển</h2>
               <button onClick={onClose} aria-label="Đóng">
                 <XMarkIcon className="w-5 h-5" />
               </button>
@@ -74,7 +92,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
                 size={40}
               />
               <div className="min-w-0">
-                <p className="font-bold text-sm leading-snug">{job.title}</p>
+                <p className="font-semibold text-sm leading-snug">{job.title}</p>
                 <p className="text-xs text-worker-text-secondary truncate">
                   {job.merchant.brandName}
                   {store ? ` · ${store.streetAddress}, ${store.district}` : ''}
@@ -83,7 +101,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <label className="text-sm font-medium flex flex-col gap-1">
+              <label className="text-sm font-normal flex flex-col gap-1">
                 Họ và tên *
                 <input
                   value={name}
@@ -94,7 +112,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
                 />
               </label>
 
-              <label className="text-sm font-medium flex flex-col gap-1">
+              <label className="text-sm font-normal flex flex-col gap-1">
                 Số điện thoại *
                 <input
                   type="tel"
@@ -111,7 +129,7 @@ export function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-worker-primary text-white rounded-worker-pill py-3 font-bold text-base hover:bg-worker-primary-hover disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                className="w-full bg-worker-primary text-white rounded-worker-pill py-3 font-normal text-base hover:bg-worker-primary-hover disabled:opacity-60 disabled:cursor-not-allowed mt-1"
               >
                 {isSubmitting ? 'Đang gửi...' : 'Ứng tuyển ngay'}
               </button>
