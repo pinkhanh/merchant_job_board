@@ -5,14 +5,15 @@ import { parsePage } from '@/lib/constants/pagination';
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
   if (!session || session.role !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const { id } = await params;
   const { searchParams } = new URL(req.url);
-  const result = await listStores(params.id, {
+  const result = await listStores(id, {
     keyword: searchParams.get('keyword') ?? undefined,
     city: searchParams.get('city') ?? undefined,
     district: searchParams.get('district') ?? undefined,
