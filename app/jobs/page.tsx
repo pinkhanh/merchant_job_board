@@ -3,8 +3,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Spinner } from '@/components/worker/ui/Spinner';
-import { Chips } from '@/components/worker/ui/Chips';
-import { Select } from '@/components/worker/ui/Select';
 import { Avatar } from '@/components/worker/ui/Avatar';
 import { ShowMore } from '@/components/worker/ui/ShowMore';
 
@@ -41,8 +39,6 @@ const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {
   seasonal: 'Thời vụ',
 };
 
-const INDUSTRIES = ['F&B', 'Retail', 'Delivery', 'Customer Service', 'Other'];
-
 function formatSalary(min: number | null, max: number | null, salaryType: string) {
   const suffix: Record<string, string> = {
     hourly: '/giờ',
@@ -74,12 +70,15 @@ function JobsPageContent() {
   const [counts, setCounts] = useState<Counts>({ employmentType: {}, industry: {}, merchant: [], minSalary: [] });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [employmentTypes, setEmploymentTypes] = useState<string[]>(
     searchParams.get('employmentType')?.split(',').filter(Boolean) ?? []
   );
   const [minSalary, setMinSalary] = useState(searchParams.get('minSalary') ?? '');
   const [industry, setIndustry] = useState(searchParams.get('industry') ?? '');
   const [merchantId, setMerchantId] = useState(searchParams.get('merchantId') ?? '');
+
+  const hasActiveFilters = employmentTypes.length > 0 || !!minSalary || !!industry || !!merchantId;
 
   function queryString(forPage: number) {
     const params = new URLSearchParams();
@@ -98,13 +97,20 @@ function JobsPageContent() {
 
   async function load(forPage: number, append: boolean) {
     if (!append) setLoading(true);
-    const res = await fetch(`/api/worker/jobs?${queryString(forPage)}`);
-    const body = await res.json();
-    setJobs((prev) => (append ? [...prev, ...body.jobs] : body.jobs));
-    setTotal(body.total);
-    setCounts(body.counts);
-    setPage(forPage);
-    setLoading(false);
+    setError(false);
+    try {
+      const res = await fetch(`/api/worker/jobs?${queryString(forPage)}`);
+      if (!res.ok) throw new Error('fetch failed');
+      const body = await res.json();
+      setJobs((prev) => (append ? [...prev, ...body.jobs] : body.jobs));
+      setTotal(body.total);
+      setCounts(body.counts);
+      setPage(forPage);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -130,7 +136,7 @@ function JobsPageContent() {
     setEmploymentTypes((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
   }
 
-  function clearFilters() {
+  function clearAllFilters() {
     setEmploymentTypes([]);
     setMinSalary('');
     setIndustry('');
@@ -174,51 +180,100 @@ function JobsPageContent() {
         </div>
       )}
 
+      {/* Filter chips - employment type with pink underline when selected */}
       <div className="flex flex-wrap gap-2 mb-3">
-        {EMPLOYMENT_TYPES.map((t) => (
-          <Chips
-            key={t.value}
-            label={`${t.label}${counts.employmentType[t.value] ? ` (${counts.employmentType[t.value]})` : ''}`}
-            variant={employmentTypes.includes(t.value) ? 'outline' : 'secondary'}
-            onClick={() => toggleEmploymentType(t.value)}
-          />
-        ))}
+        {EMPLOYMENT_TYPES.map((t) => {
+          const selected = employmentTypes.includes(t.value);
+          return (
+            <button
+              key={t.value}
+              onClick={() => toggleEmploymentType(t.value)}
+              className={`relative px-4 py-2 rounded-worker-pill text-sm font-medium border transition-colors ${
+                selected
+                  ? 'border-worker-primary text-worker-primary bg-white'
+                  : 'border-worker-border text-worker-text-secondary bg-white'
+              }`}
+            >
+              {`${t.label}${counts.employmentType[t.value] ? ` (${counts.employmentType[t.value]})` : ''}`}
+              {selected && (
+                <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-worker-primary rounded-full" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select
+      {/* Salary + Industry selects */}
+      <div className="flex flex-wrap gap-3 mb-3">
+        <select
           value={minSalary}
-          onChange={setMinSalary}
-          options={[
-            { value: '', label: 'Tất cả mức lương' },
-            ...counts.minSalary.map((b) => ({
-              value: String(b.threshold),
-              label: `≥ ${b.threshold.toLocaleString('vi-VN')} (${b.count})`,
-            })),
-          ]}
-        />
-        <Select
+          onChange={(e) => setMinSalary(e.target.value)}
+          className={`border rounded-worker-pill px-4 py-2 text-sm appearance-none bg-white pr-8 ${
+            minSalary ? 'border-worker-primary text-worker-primary' : 'border-worker-border text-worker-text-secondary'
+          }`}
+        >
+          <option value="">Tất cả mức lương</option>
+          {counts.minSalary.map((b) => (
+            <option key={b.threshold} value={String(b.threshold)}>
+              {`≥ ${b.threshold.toLocaleString('vi-VN')} (${b.count})`}
+            </option>
+          ))}
+        </select>
+        <select
           value={industry}
-          onChange={setIndustry}
-          options={[
-            { value: '', label: 'Tất cả ngành nghề' },
-            ...INDUSTRIES.map((i) => ({ value: i, label: `${i} (${counts.industry[i] ?? 0})` })),
-          ]}
-        />
+          onChange={(e) => setIndustry(e.target.value)}
+          className={`border rounded-worker-pill px-4 py-2 text-sm appearance-none bg-white pr-8 ${
+            industry ? 'border-worker-primary text-worker-primary' : 'border-worker-border text-worker-text-secondary'
+          }`}
+        >
+          <option value="">Tất cả ngành nghề</option>
+          {['F&B', 'Retail', 'Delivery', 'Customer Service', 'Other'].map((i) => (
+            <option key={i} value={i}>{`${i} (${counts.industry[i] ?? 0})`}</option>
+          ))}
+        </select>
       </div>
 
+      {/* Clear all CTA */}
+      {hasActiveFilters && (
+        <div className="mb-4">
+          <button
+            onClick={clearAllFilters}
+            className="text-sm text-worker-primary font-medium underline underline-offset-2"
+          >
+            Bỏ chọn tất cả
+          </button>
+        </div>
+      )}
+
+      {/* Job list / states */}
       {loading ? (
         <div className="flex justify-center py-16">
           <Spinner />
         </div>
-      ) : jobs.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-worker-text-secondary mb-4">
-            Không tìm thấy việc làm phù hợp. Thử mở rộng khu vực hoặc điều chỉnh bộ lọc.
-          </p>
-          <button onClick={clearFilters} className="border border-worker-primary text-worker-primary rounded-worker-pill px-6 py-2.5 text-sm font-bold">
-            Xóa bộ lọc
+      ) : error ? (
+        <div className="flex flex-col items-center py-12 px-4 text-center">
+          <img src="/images/error-system.png" alt="Hệ thống lỗi" className="w-32 h-32 object-contain mb-4" />
+          <p className="font-bold text-base mb-1">Hệ thống lỗi</p>
+          <p className="text-sm text-worker-text-secondary">Hiện tại hệ thống đang lỗi. Vui lòng thử lại sau</p>
+          <button
+            onClick={() => load(1, false)}
+            className="mt-4 border border-worker-primary text-worker-primary rounded-worker-pill px-6 py-2.5 text-sm font-bold"
+          >
+            Thử lại
           </button>
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="flex flex-col items-center py-12 px-4 text-center">
+          <img src="/images/empty-jobs.png" alt="Không có kết quả" className="w-32 h-32 object-contain mb-4" />
+          <p className="font-bold text-base mb-1">Không có kết quả</p>
+          <p className="text-sm text-worker-text-secondary">
+            Rất tiếc, không tìm thấy kết quả nào phù hợp với toàn bộ lựa chọn của bạn
+          </p>
+          {hasActiveFilters && (
+            <button onClick={clearAllFilters} className="mt-4 border border-worker-primary text-worker-primary rounded-worker-pill px-6 py-2.5 text-sm font-bold">
+              Bỏ chọn tất cả
+            </button>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -255,7 +310,7 @@ function JobsPageContent() {
         </div>
       )}
 
-      {jobs.length < total && (
+      {jobs.length < total && !loading && !error && (
         <div className="text-center mt-6">
           <ShowMore onClick={() => load(page + 1, true)} label="Xem thêm" />
         </div>
